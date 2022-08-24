@@ -24,7 +24,6 @@ vex::motor LeftOut(vex::PORT20, true);
 vex::motor LeftIn(vex::PORT19, false);
 vex::motor RightOut(vex::PORT11, false);
 vex::motor RightIn(vex::PORT18, true);
-vex::motor Intake(vex::PORT12, false);
 
 vex::controller ct;
 
@@ -78,8 +77,6 @@ void usercontrol(void) {
   // User control code here, inside the loop
 
   bool aPrev = false;
-  bool  bPrev = false;
-  bool intakeOn = false;
   while (1) {
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
@@ -111,11 +108,7 @@ void usercontrol(void) {
 
     aPrev = ct.ButtonA.pressing();
 
-    if (ct.ButtonB.pressing()) {
-      Intake.spin(forward, -100, percent);
-    } else if (ct.ButtonY.pressing()) {
-      Intake.stop(coast);
-    }
+
     
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
