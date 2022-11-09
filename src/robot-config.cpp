@@ -6,9 +6,10 @@ using code = vision::code;
 
 // A global instance of brain used for printing to the V5 Brain screen
 brain  Brain;
+digital_out trans = digital_out(Brain.ThreeWirePort.H);
+
 
 // VEXcode device constructors
-digital_out trans = digital_out(Brain.ThreeWirePort.H);
 
 // VEXcode generated functions
 

@@ -24,10 +24,13 @@ vex::motor LeftOut(vex::PORT20, true);
 vex::motor LeftIn(vex::PORT19, false);
 vex::motor RightOut(vex::PORT11, false);
 vex::motor RightIn(vex::PORT18, true);
-vex::motor FLDrive(vex::PORT20, true);
-vex::motor FRDrive(vex::PORT19, false);
-vex::motor BLDrive(vex::PORT11, false);
-vex::motor BRDrive(vex::PORT18, true);
+vex::motor FlywheelUp(vex::PORT17, true);
+vex::motor FlywheelDown(vex::PORT17, true);
+vex::motor Puncher(vex::PORT17, true);
+vex::motor Intake_Roller(vex::PORT17, true);
+motor_group Flywheel = motor_group(FlywheelUp, FlywheelDown);
+
+
 
 vex::controller ct;
 
@@ -77,6 +80,37 @@ void autonomous(void) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
+bool maintainSpeed = false;
+double kp = 0.2;
+double ki = 0.1;
+double kd = 0.05;
+double prevError = 0.0;
+double error = 0.0;
+double totalError = 0.0; // += error
+double derivative = 0.0; // = error-preverror
+double speedAvg;
+double Power = 0;
+bool ReadyShoot = false;
+
+void FlywheelPID(double targetSpeed) {
+  while(maintainSpeed){
+    speedAvg = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm))/2; 
+    error = targetSpeed - speedAvg;
+    if (error <= 0.5){
+      ReadyShoot = true;
+    }
+    else{
+      ReadyShoot = false;
+    }
+    Power = (error*kp + totalError * ki + (error - prevError) * kd)/12;
+    Flywheel.spin(forward, Power, volt);
+    prevError = error;
+    totalError += error;
+    wait(20, msec);
+
+  }
+}
+
 void usercontrol(void) {
   // User control code here, inside the loop
 
@@ -101,10 +135,10 @@ void usercontrol(void) {
     double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
     double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
 
-    FLDrive.setStopping(coast);
-    FRDrive.setStopping(coast);
-    BLDrive.setStopping(coast);
-    BRDrive.setStopping(coast);
+    LeftOut.setStopping(coast);
+    RightOut.setStopping(coast);
+    LeftIn.setStopping(coast);
+    RightIn.setStopping(coast);
 
     LeftIn.spin(forward, outputL, pct);
     LeftOut.spin(forward, outputL, pct);
@@ -128,8 +162,8 @@ void usercontrol(void) {
     double smoothFactor = 0;
 
 
-    double leftVelocity = (FLDrive.velocity(percent)  + BLDrive.velocity(percent)) / 2;
-    double rightVelocity = (FRDrive.velocity(percent)  + BRDrive.velocity(percent)) / 2;
+    double leftVelocity = (LeftOut.velocity(percent)  + LeftIn.velocity(percent)) / 2;
+    double rightVelocity = (RightOut.velocity(percent)  + RightIn.velocity(percent)) / 2;
 
     outputL = (outputL + leftVelocity * smoothFactor) / (smoothFactor + 1);
     outputR = (outputR + rightVelocity * smoothFactor) / (smoothFactor + 1);
@@ -138,12 +172,26 @@ void usercontrol(void) {
     //printf("vel=%f, rO=%f\n",outputR, rightOffset);
     ///*
 
-    BLDrive.spin(forward, (outputL / 100)  * 12, volt);
-    FLDrive.spin(forward, (outputL / 100)  * 12, volt);
-    BRDrive.spin(forward, (outputR / 100)  * 12, volt);
-    FRDrive.spin(forward, (outputR / 100)  * 12, volt);
+    LeftIn.spin(forward, (outputL / 100)  * 12, volt);
+    LeftOut.spin(forward, (outputL / 100)  * 12, volt);
+    RightOut.spin(forward, (outputR / 100)  * 12, volt);
+    RightIn.spin(forward, (outputR / 100)  * 12, volt);
 
+    //--------------------------------------------------------------------------------------------------------
 
+    while(true) {
+      if(ct.ButtonL1.pressing())
+      {
+        Intake_Roller.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
+      }
+    }
+
+    if(ct.ButtonL2.pressing())
+    {
+      Intake_Roller.stop(brakeType::hold);
+    }
+    
+    
     
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
