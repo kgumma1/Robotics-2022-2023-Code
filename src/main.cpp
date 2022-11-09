@@ -24,6 +24,10 @@ vex::motor LeftOut(vex::PORT20, true);
 vex::motor LeftIn(vex::PORT19, false);
 vex::motor RightOut(vex::PORT11, false);
 vex::motor RightIn(vex::PORT18, true);
+vex::motor FLDrive(vex::PORT20, true);
+vex::motor FRDrive(vex::PORT19, false);
+vex::motor BLDrive(vex::PORT11, false);
+vex::motor BRDrive(vex::PORT18, true);
 
 vex::controller ct;
 
@@ -97,6 +101,11 @@ void usercontrol(void) {
     double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
     double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
 
+    FLDrive.setStopping(coast);
+    FRDrive.setStopping(coast);
+    BLDrive.setStopping(coast);
+    BRDrive.setStopping(coast);
+
     LeftIn.spin(forward, outputL, pct);
     LeftOut.spin(forward, outputL, pct);
     RightIn.spin(forward, outputR, pct);
@@ -107,6 +116,32 @@ void usercontrol(void) {
     }
 
     aPrev = ct.ButtonA.pressing();
+
+
+    // Driver Control Code --------------------------------------------------------------------------------
+
+    // BLDrive.spin(forward, ct.Axis3.value() + (ct.Axis1.value() * 0.5), percent);
+    // FLDrive.spin(forward, ct.Axis3.value() + (ct.Axis1.value() * 0.5), percent);
+    // BRDrive.spin(forward, ct.Axis3.value() - (ct.Axis1.value() * 0.5), percent);
+    // FRDrive.spin(forward, ct.Axis3.value() - (ct.Axis1.value() * 0.5), percent);
+    
+    double smoothFactor = 0;
+
+
+    double leftVelocity = (FLDrive.velocity(percent)  + BLDrive.velocity(percent)) / 2;
+    double rightVelocity = (FRDrive.velocity(percent)  + BRDrive.velocity(percent)) / 2;
+
+    outputL = (outputL + leftVelocity * smoothFactor) / (smoothFactor + 1);
+    outputR = (outputR + rightVelocity * smoothFactor) / (smoothFactor + 1);
+
+    //printf("OL = %f, OR = %f, F = %f, S = %f\n", outputL, outputR, Axis3Adjusted, Axis1Adjusted);
+    //printf("vel=%f, rO=%f\n",outputR, rightOffset);
+    ///*
+
+    BLDrive.spin(forward, (outputL / 100)  * 12, volt);
+    FLDrive.spin(forward, (outputL / 100)  * 12, volt);
+    BRDrive.spin(forward, (outputR / 100)  * 12, volt);
+    FRDrive.spin(forward, (outputR / 100)  * 12, volt);
 
 
     
