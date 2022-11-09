@@ -80,31 +80,30 @@ void autonomous(void) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-bool maintainSpeed = false;
 double kp = 0.2;
 double ki = 0.1;
 double kd = 0.05;
 double prevError = 0.0;
 double error = 0.0;
 double totalError = 0.0; // += error
-double derivative = 0.0; // = error-preverror
-double speedAvg;
+double der = 0.0; // = error-preverror
+double speedAvg = 0;
 double Power = 0;
 bool ReadyShoot = false;
 
 void FlywheelPID(double targetSpeed) {
-  while(maintainSpeed){
+  while(true){
     speedAvg = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm))/2; 
     error = targetSpeed - speedAvg;
-    if (error <= 0.5){
+    if (error <= 0.5){ //less that 0.5 RPM from target RPM
       ReadyShoot = true;
     }
     else{
       ReadyShoot = false;
     }
-    Power = (error*kp + totalError * ki + (error - prevError) * kd)/12;
-    Flywheel.spin(forward, Power, volt);
-    prevError = error;
+    Power = (error*kp + totalError * ki + (error - prevError) * kd)/12; ///12 for voltage
+    Flywheel.spin(forward, Power, volt); //final output in volts
+    prevError = error; //derivative
     totalError += error;
     wait(20, msec);
 
