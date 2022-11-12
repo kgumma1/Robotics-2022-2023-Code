@@ -29,7 +29,13 @@ vex::motor FlywheelDown(vex::PORT17, true);
 vex::motor Puncher(vex::PORT17, true);
 vex::motor Intake_Roller(vex::PORT3, true);
 motor_group Flywheel = motor_group(FlywheelUp, FlywheelDown);
-
+motor_group leftDrive = motor_group(LeftOut, LeftIn);
+motor_group rightDrive = motor_group(RightOut, RightIn);
+inertial isensor = inertial(PORT12);
+smartdrive driveTrain = smartdrive(leftDrive, rightDrive, isensor, 12.566367061, /*trackWidth*/ 14.5, /*wheelBase*/ 11.0, distanceUnits::in, 1);
+encoder encLeft = encoder(Brain.ThreeWirePort.A); // and H
+encoder encRight = encoder(Brain.ThreeWirePort.G); // and D
+encoder encBack = encoder(Brain.ThreeWirePort.E); // and B
 
 
 vex::controller ct;
@@ -45,6 +51,7 @@ vex::controller ct;
 5 - right side base     |
 6 - right side base     |
 7 - flywheel            | // this is a reversed motor (FIX IN BOTTOM-LEVEL CODE?)
+12 - inertial           |
 */ // - - - - - - - - - -
 
 // define your global instances of motors and other devices here
@@ -66,6 +73,28 @@ void pre_auton(void) {
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
 }
+
+void turnToHeading(double angle, int speed=25)
+{
+  driveTrain.turnToHeading(angle, rotationUnits::deg, speed, velocityUnits::pct, true);
+}
+
+void inertTurnDegPID(double targetValue, double kP, double kI, double kD) 
+{
+  double turnError = targetValue - isensor.heading();
+
+  while(turnError > 1) 
+  {
+    turnError = targetValue - isensor.heading();
+
+    leftDrive.spin(directionType::fwd, turnError * kP + turnError * kI + turnError * kD, velocityUnits::pct);
+    rightDrive.spin(directionType::rev, turnError * kP + turnError * kI + turnError * kD, velocityUnits::pct);
+
+    task::sleep(20); //20 msc
+    //wait(20, msec);
+  }
+}
+
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -212,6 +241,16 @@ void usercontrol(void) {
       if (ct.ButtonR1.pressing()) {
         //make the flywheel go brrr
         FlywheelPID(maxspeed);
+      }
+    }
+
+    // ROLLER/INTAKE CODE --------------------------------------------------
+    while (true) {
+      if (ct.ButtonL1.pressing()) {
+        //make the flywheel go brrr
+        Intake_Roller.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
+        wait(puncherTime, msec);
+        Puncher.stop();
       }
     }
 
