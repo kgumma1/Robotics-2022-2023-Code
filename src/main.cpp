@@ -27,12 +27,25 @@ vex::motor RightIn(vex::PORT18, true);
 vex::motor FlywheelUp(vex::PORT17, true);
 vex::motor FlywheelDown(vex::PORT17, true);
 vex::motor Puncher(vex::PORT17, true);
-vex::motor Intake_Roller(vex::PORT17, true);
+vex::motor Intake_Roller(vex::PORT3, true);
 motor_group Flywheel = motor_group(FlywheelUp, FlywheelDown);
 
 
 
 vex::controller ct;
+
+
+/* PORTS- - - - - - - - -
+19 - Radio              |
+20 - puncher for discs  |
+1 - flywheel            |
+2 - left side base      |
+3 - intake/roller       |
+4 - left side base      |
+5 - right side base     |
+6 - right side base     |
+7 - flywheel            | // this is a reversed motor (FIX IN BOTTOM-LEVEL CODE?)
+*/ // - - - - - - - - - -
 
 // define your global instances of motors and other devices here
 
@@ -90,6 +103,8 @@ double der = 0.0; // = error-preverror
 double speedAvg = 0;
 double Power = 0;
 bool ReadyShoot = false;
+double maxspeed = 4200; //4200 rpm
+double puncherTime = 500;
 
 void FlywheelPID(double targetSpeed) {
   while(true){
@@ -178,6 +193,7 @@ void usercontrol(void) {
 
     //--------------------------------------------------------------------------------------------------------
 
+    // INTAKE / ROLLER CODE -----------------------------------------------------
     while(true) {
       if(ct.ButtonL1.pressing())
       {
@@ -191,6 +207,22 @@ void usercontrol(void) {
     }
     
     
+    // FLYWHEEL CODE --------------------------------------------------
+    while (true) {
+      if (ct.ButtonR1.pressing()) {
+        //make the flywheel go brrr
+        FlywheelPID(maxspeed);
+      }
+    }
+
+
+    // PUNCHER CODE --------------------------------------------------
+    if (ct.ButtonR2.pressing()) {
+      // puncher moves up a certain amount.
+      Puncher.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
+      wait(puncherTime, msec);
+      Puncher.stop();
+    }
     
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
