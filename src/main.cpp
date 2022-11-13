@@ -33,9 +33,13 @@ motor_group leftDrive = motor_group(LeftOut, LeftIn);
 motor_group rightDrive = motor_group(RightOut, RightIn);
 inertial isensor = inertial(PORT12);
 smartdrive driveTrain = smartdrive(leftDrive, rightDrive, isensor, 12.566367061, /*trackWidth*/ 14.5, /*wheelBase*/ 11.0, distanceUnits::in, 1);
-encoder encLeft = encoder(Brain.ThreeWirePort.A); // and H
-encoder encRight = encoder(Brain.ThreeWirePort.G); // and D
-encoder encBack = encoder(Brain.ThreeWirePort.E); // and B
+encoder encLeft = encoder(Brain.ThreeWirePort.C); // and D
+encoder encRight = encoder(Brain.ThreeWirePort.E); // and F
+encoder encBack = encoder(Brain.ThreeWirePort.G); // and H
+digital_out trans = digital_out(Brain.ThreeWirePort.A);
+digital_out indexer = digital_out(Brain.ThreeWirePort.B);
+//A - transmission piston
+//B - indexer
 
 
 vex::controller ct;
