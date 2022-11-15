@@ -3,7 +3,16 @@ using namespace vex;
 extern brain Brain;
 
 // VEXcode devices
-extern digital_out trans;
+extern motor FlywheelUp;
+extern motor FLDrive;
+extern motor Intake_Roller;
+extern motor BLDrive;
+extern motor FRDrive;
+extern motor BRDrive;
+extern motor FlywheelDown;
+extern controller Controller1;
+extern motor Puncher;
+extern inertial inertialSensor;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
