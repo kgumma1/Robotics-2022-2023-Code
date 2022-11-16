@@ -576,6 +576,35 @@ void FlywheelPID(double targetSpeed, int numDiscs = 1) {
   }
 }
 
+void Fly(int targetSpeed = 2250, int Shots = 2) {
+  int targetspeed = targetSpeed;
+  FlywheelDown.spin(fwd, targetspeed / 7.0, rpm);
+  FlywheelUp.spin(fwd, targetspeed / 7.0, rpm);
+  int shots = 0;
+
+  int withinSpeed = 0;
+
+  while (shots < Shots){
+    if (fabs((FlywheelDown.velocity(rpm) + FlywheelUp.velocity(rpm)) / 2.0 * 7 - targetspeed) < 10){
+      withinSpeed++;
+      if (withinSpeed >= 20) {
+        Indexer.set(true);
+        wait(300, msec);
+        Indexer.set(false);
+        wait(500, msec);
+        shots++;
+
+      }
+    } else {
+      withinSpeed = 0;
+    }
+
+
+
+  }
+  FlywheelDown.stop(coast);
+  FlywheelUp.stop(coast);
+}
 
 
 
@@ -591,7 +620,17 @@ void autonomous(void) {
   // Brain.Screen.print(i+1);
   // driveFwdPID(24); // inches
   // inertTurnDegPID(90, 0.25); // target & kp
-  FlywheelPID(3000, 2); // 12 max
+  Fly(2250, 2);
+  spinLeft(3);
+  spinRight(3);
+  wait(500, msec);
+  inertTurnDegPID(0, 0.25);
+  // Intake_Roller.stop();
+  Intake_Roller.spinFor(forward, 0.5, rev);
+  stopBase();
+ 
+  
+
 }
 
 /*---------------------------------------------------------------------------*/
