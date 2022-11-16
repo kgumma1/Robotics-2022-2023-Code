@@ -651,8 +651,22 @@ void autonomous(void) {
 void usercontrol(void) {
   // User control code here, inside the loop
 
-  bool aPrev = false;
+  bool xPrev = false;
   bool bPrev = false;
+  bool aPrev = false;
+
+  bool l1Prev = false;
+  bool flyOn = false;
+
+  bool r1Prev = false;
+  bool r2Prev = false;
+  bool intRollOn = false;
+  int intRollSpeed = 100;
+
+  int flywheelSpeed = 600;
+
+  Puncher.setStopping(hold);
+
   while (1) {
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
@@ -662,12 +676,13 @@ void usercontrol(void) {
     // Insert user code here. This is where you use the joystick values to
     // update your motors, etc.
     // ........................................................................
+    // DRIVE
     double initSens = 0.8;
     double sensInc = -0.0001;
 
 
     double Axis3Adjusted = Controller1.Axis3.position();
-    double Axis1Adjusted = Controller1.Axis1.position();
+    double Axis1Adjusted = Controller1.Axis1.position() * 0.75;
 
 
     double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
@@ -678,43 +693,91 @@ void usercontrol(void) {
     FRDrive.spin(forward, outputR, pct);
     BRDrive.spin(forward, outputR, pct);
 
-    if (Controller1.ButtonY.pressing()) {
-      FlywheelUp.spin(forward, 6.25, volt);
-      FlywheelDown.spin(forward, 6.25, volt);
-    } else {
-      FlywheelUp.stop(coast);
-      FlywheelDown.stop(coast);
+
+    // FLYWHEEL
+    if (Controller1.ButtonUp.pressing()) {
+      flywheelSpeed = 3000; // 380
+    } else if (Controller1.ButtonDown.pressing()) {
+      flywheelSpeed = 2500; // 330
     }
+
+    if (Controller1.ButtonL1.pressing() && !l1Prev) {
+      flywheelSpeed = 2300; // 290
+      if (!flyOn) {
+        flyOn = true;
+      } else {
+        FlywheelDown.stop(coast);
+        FlywheelUp.stop(coast);
+        flyOn = false;
+      }
+    }
+
+    if (flyOn) {
+      FlywheelDown.spin(forward, (flywheelSpeed / 7.0) / 50, volt);
+      FlywheelUp.spin(forward, (flywheelSpeed / 7.0) / 50, volt);
+    }
+
+
+
     printf("topM   : %f\n", FlywheelUp.velocity(pct));
     printf("BottomM: %f\n", FlywheelDown.velocity(pct));
 
-    if (Controller1.ButtonA.pressing() && !aPrev) {
+    // TRANSMISSION
+    if (Controller1.ButtonX.pressing() && !xPrev) {
       trans.set(!trans.value());
     }
 
-    if (Controller1.ButtonL1.pressing()) {
-      Intake_Roller.spin(forward, 100, pct);
-    } else if (Controller1.ButtonL2.pressing()) {
-      Intake_Roller.spin(reverse, 100, pct);
-    } else if (Controller1.ButtonR2.pressing()) {
-      Intake_Roller.spin(reverse, 80, pct);
+    // INTAKE/ROLLER
+    if (Controller1.ButtonR1.pressing() && !r1Prev) {
+      if (intRollSpeed != -100) {
+        intRollOn = true;
+        intRollSpeed = -100;
+      } else {
+        intRollOn = false;
+        intRollSpeed = 0;
+      }
+    }
+
+    if (Controller1.ButtonR2.pressing() && !r2Prev) {
+      if (intRollSpeed != 100) {
+        intRollOn = true;
+        intRollSpeed = 100;
+      } else {
+        intRollOn = false;
+        intRollSpeed = 0;
+      }
+    } 
+
+    if (intRollOn) {
+      Intake_Roller.spin(forward, intRollSpeed, pct);
     } else {
       Intake_Roller.stop(coast);
     }
 
-    if (Controller1.ButtonR1.pressing()) {
-      Puncher.spin(fwd, -100, pct);
+    //INDEXER
+    if(Controller1.ButtonL2.pressing()) {
+      Indexer.set(true);
     } else {
-      Puncher.stop(hold);
-    }
-
-    if(Controller1.ButtonB.pressing() && !bPrev) {
-      Indexer.set(!Indexer.value());
-      printf("-----------FlyWHEEL: %ld----------\n", Indexer.value());
+      Indexer.set(false);
     }
  
+
+    // PUNCHER 
+    if (Controller1.ButtonB.pressing()) {
+      Puncher.spinFor((2200 - abs((int)(Puncher.position(degrees)) % 2200)) * -1, rotationUnits::deg, 100, velocityUnits::pct, false);
+    }
+    if (Controller1.ButtonA.pressing()) {
+      Puncher.spin(reverse, 100, pct);
+    }
+    if (!Controller1.ButtonA.pressing() && aPrev) {
+      Puncher.stop();
+    }
+
+    xPrev = Controller1.ButtonX.pressing();
+    l1Prev = Controller1.ButtonL1.pressing();
+    r1Prev = Controller1.ButtonR1.pressing();
+    r2Prev = Controller1.ButtonR2.pressing();
     aPrev = Controller1.ButtonA.pressing();
-    bPrev = Controller1.ButtonB.pressing();
 
 
     
