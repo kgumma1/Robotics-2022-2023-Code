@@ -10,16 +10,18 @@
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
-// FlywheelUp           motor         1               
+// FlywheelUp           motor         7               
 // FLDrive              motor         2               
 // Intake_Roller        motor         3               
 // BLDrive              motor         4               
 // FRDrive              motor         5               
 // BRDrive              motor         6               
-// FlywheelDown         motor         7               
+// FlywheelDown         motor         1               
 // Controller1          controller                    
-// Puncher              motor         8               
-// inertialSensor       inertial      9               
+// Puncher              motor         20              
+// inertialSensor       inertial      12              
+// trans                digital_out   A               
+// Indexer              digital_out   B               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
@@ -41,9 +43,37 @@ competition Competition;
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
 
+double getInertialReading()
+{
+  // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
+  double reading = inertialSensor.heading(degrees);
+  reading = reading > 180 ? reading - 360 : reading;
+  reading = reading < -180 ? reading + 360 : reading;
+  return reading;
+  return 0;
+}
+
+void calibrateIntertial()
+{
+  // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
+  wait(3, sec);
+  inertialSensor.calibrate();
+  Brain.Screen.clearScreen();
+  Brain.Screen.print("...");
+  Controller1.Screen.print("...");
+  while (inertialSensor.isCalibrating())
+  {
+    vex::task::sleep(20);
+  }
+
+  Controller1.Screen.print("Done");
+  Brain.Screen.print("Done");
+}
+
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  calibrateIntertial();
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
@@ -76,6 +106,19 @@ void spinRight(double speed)
   FRDrive.spin(directionType::fwd, speed , velocityUnits::pct);
 }
 
+void spinLeftV(double speed)
+{
+
+  BLDrive.spin(speed > 0 ? forward : reverse, fabs(speed/8.333333) , volt);
+  FLDrive.spin(speed > 0 ? forward : reverse, fabs(speed/8.333333), volt); 
+}
+
+void spinRightV(double speed)
+{
+  BRDrive.spin(speed > 0 ? forward : reverse, fabs(speed/8.333333) , volt);
+  FRDrive.spin(speed > 0 ? forward : reverse, fabs(speed/8.333333) , volt);
+}
+
 void spinBase(double Rspeed, double Lspeed)
 {
   spinLeft(Lspeed);
@@ -91,33 +134,17 @@ void stopBase()
   BRDrive.stop();
 }
 
+void driveBasic(double MsecTime, double Speed){
+  spinLeft(Speed);
+  spinRight(Speed);
+  wait(MsecTime, msec);
+  stopBase();
+}
+
 // get inertial reading
-double getInertialReading()
-{
-  // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
-  double reading = inertialSensor.heading(degrees);
-  reading = reading > 180 ? reading - 360 : reading;
-  reading = reading < -180 ? reading + 360 : reading;
-  return reading;
-  return 0;
-}
 
-void calibrateIntertial()
-{
-  // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
-  wait(3, sec);
-  inertialSensor.calibrate();
-  Brain.Screen.clearScreen();
-  Brain.Screen.print("...");
-  Controller1.Screen.print("...");
-  while (inertialSensor.isCalibrating())
-  {
-    vex::task::sleep(20);
-  }
 
-  Controller1.Screen.print("Done");
-  Brain.Screen.print("Done");
-}
+
 
 void resetTrackers()
 {
@@ -253,6 +280,108 @@ float getRobotAngle()
   float rightArc = getRightTrackerArc();
   float botAngle = (leftArc-rightArc)/(2*r);
   return botAngle;
+}
+
+void driveFwdPID(double dist)  //inches
+
+{
+
+  double kP = 4.5; //0.185
+
+  double kI = 0;
+
+  double kD = 0;
+
+  double error = 2;
+
+  double integral = 0;
+
+  double derivative = 0;
+
+  double prevError = 0;
+
+  double powers = 0;
+
+  double avgPos = (fabs(FLDrive.position(rotationUnits::deg)) + fabs(BLDrive.position(rotationUnits::deg)) + fabs(FRDrive.position(rotationUnits::deg)) + fabs(BLDrive.position(rotationUnits::deg)))/4;
+
+  BRDrive.resetPosition(); //((frontMotorB.position(rotationUnits::deg)/360) * 12.96)
+
+  BLDrive.resetPosition();
+
+  FLDrive.resetPosition();
+
+  FRDrive.resetPosition();
+
+  //The following formula is used to convert an angle in degrees to length in feet.
+
+  //To calculate feet from degrees, divide the angle by 360, multiply by 2 times pi, then finally, multiply by the radius. Then multiply by 12 to get inches
+
+  while(error > 0.5)
+
+  {
+    double newPos = (fabs(FLDrive.position(rotationUnits::deg)) + fabs(BLDrive.position(rotationUnits::deg)) + fabs(FRDrive.position(rotationUnits::deg)) + fabs(BLDrive.position(rotationUnits::deg)))/4;
+    
+    error = dist - (((newPos/360) * (5.0/3.0) * (M_PI) * (3.25)));//((avgPos/360) * 10.205);
+    printf("newpos: %f, %f\n", newPos, (((newPos/360) * (5.0/3.0) * (M_PI) * (3.25))));
+    printf("error: %f\n", error);
+    if(error != 0) {
+
+      integral += 1;
+
+    } else {
+
+      integral = 0;
+
+    }
+
+ 
+
+    derivative = error-prevError;
+
+    prevError = error;
+
+ 
+
+    powers = error * kP + derivative * kD + integral * kI;
+    printf("power: %f\n", powers);
+ 
+
+    spinLeftV(powers);
+
+    spinRightV(powers);
+    wait(10, msec);
+  }
+
+}
+
+void inertTurnDegPID(double targetValue, double kP)
+
+{
+
+  double turnError = targetValue - inertialSensor.heading();
+
+ 
+
+  while(turnError > 1)
+
+  {
+
+    turnError = targetValue - inertialSensor.heading();
+
+ 
+
+    spinLeft(turnError * kP);
+
+    spinRight(-turnError * kP);
+
+ 
+
+    task::sleep(20); //20 msc
+
+    //wait(20, msec);
+
+  }
+
 }
 
 void LinTrackOld()
@@ -401,12 +530,68 @@ void DriveS(double amount, double speed, double timeOut = 10, bool fast = false)
 
 }
 
+double kp = 0.003;
+double ki = 0.0;
+double kd = 0.0;
+double prevError = 0.0;
+double error = 0.0;
+double totalError = 0.0; // += error
+double der = 0.0; // = error-preverror
+double speedAvg = 0;
+double Power = 0;
+bool ReadyShoot = false;
+double maxspeed = 4200; //4200 rpm
+double puncherTime = 50;
+
+void FlywheelPID(double targetSpeed, int numDiscs = 1) {
+  int shots = 0;
+  while(true){
+    speedAvg = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) * 7.0 /2; 
+    error = targetSpeed - speedAvg;
+    printf("error: %f\n", error);
+    printf("speed: %f\n", speedAvg);
+    if (fabs(error) <= 100){ //less that 0.5 RPM from target RPM
+      ReadyShoot = true;
+    }
+    else{
+      ReadyShoot = false;
+    }
+    Power = (targetSpeed / 350.0) + (error*kp + totalError * ki + (error - prevError) * kd); ///12 for voltage
+    FlywheelUp.spin(forward, Power, volt); //final output in volts
+    FlywheelDown.spin(forward, Power, volt);
+    prevError = error; //derivative
+    totalError += error;
+    wait(20, msec);
+   if (ReadyShoot) {
+     Indexer.set(true);
+     wait(300, msec);
+     Indexer.set(false);
+     shots++;
+     printf("shots: %d\n", shots);
+     if (shots == numDiscs) {
+       return;
+     }
+   }
+   wait(10, msec);
+  }
+}
+
+
 
 
 void autonomous(void) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
+  int i = 0;
+  Brain.Screen.print(i+1);
+  // driveBasic(2000, 60);
+  // Brain.Screen.print(i+1);
+  // Turn(50, 60);
+  // Brain.Screen.print(i+1);
+  // driveFwdPID(24); // inches
+  // inertTurnDegPID(90, 0.25); // target & kp
+  FlywheelPID(3000, 2); // 12 max
 }
 
 /*---------------------------------------------------------------------------*/
@@ -423,38 +608,6 @@ void autonomous(void) {
 //                       FLYWHEEL PID FUNCTION
 // --------------------------------------------------------------- //
 
-double kp = 0.2;
-double ki = 0.1;
-double kd = 0.05;
-double prevError = 0.0;
-double error = 0.0;
-double totalError = 0.0; // += error
-double der = 0.0; // = error-preverror
-double speedAvg = 0;
-double Power = 0;
-bool ReadyShoot = false;
-double maxspeed = 4200; //4200 rpm
-double puncherTime = 500;
-
-void FlywheelPID(double targetSpeed) {
-  while(true){
-    speedAvg = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm))/2; 
-    error = targetSpeed - speedAvg;
-    if (error <= 0.5){ //less that 0.5 RPM from target RPM
-      ReadyShoot = true;
-    }
-    else{
-      ReadyShoot = false;
-    }
-    Power = (error*kp + totalError * ki + (error - prevError) * kd)/12; ///12 for voltage
-    FlywheelUp.spin(forward, Power, volt); //final output in volts
-    FlywheelDown.spin(forward, Power, volt);
-    prevError = error; //derivative
-    totalError += error;
-    wait(20, msec);
-
-  }
-}
 
 void usercontrol(void) {
   // User control code here, inside the loop
@@ -468,6 +621,8 @@ void usercontrol(void) {
     // Insert user code here. This is where you use the joystick values to
     // update your motors, etc.
     // ........................................................................
+
+    Puncher.setStopping(hold);
     double initSens = 0.8;
     double sensInc = -0.0001;
 
@@ -486,42 +641,42 @@ void usercontrol(void) {
     // Error Tag: tag1
     // --------------------------------------------------------------- //
 
-    // LeftOut.setStopping(coast);
-    // RightOut.setStopping(coast);
-    // LeftIn.setStopping(coast);
-    // RightIn.setStopping(coast);
+    BLDrive.setStopping(coast);
+    BRDrive.setStopping(coast);
+    FRDrive.setStopping(coast);
+    FLDrive.setStopping(coast);
 
-    // LeftIn.spin(forward, outputL, pct);
-    // LeftOut.spin(forward, outputL, pct);
-    // RightIn.spin(forward, outputR, pct);
-    // RightOut.spin(forward, outputR, pct);
+    FLDrive.spin(forward, outputL, pct);
+    BLDrive.spin(forward, outputL, pct);
+    BRDrive.spin(forward, outputR, pct);
+    FRDrive.spin(forward, outputR, pct);
 
-    // if (ct.ButtonA.pressing() && !aPrev) {
-    //   trans.set(!trans.value());
-    // }
+    if (Controller1.ButtonA.pressing() && !aPrev) {
+      trans.set(!trans.value());
+    }
 
-    // aPrev = ct.ButtonA.pressing();
+    aPrev = Controller1.ButtonA.pressing();
 
 
     // Driver Control Code --------------------------------------------------------------------------------
 
-    // BLDrive.spin(forward, ct.Axis3.value() + (ct.Axis1.value() * 0.5), percent);
-    // FLDrive.spin(forward, ct.Axis3.value() + (ct.Axis1.value() * 0.5), percent);
-    // BRDrive.spin(forward, ct.Axis3.value() - (ct.Axis1.value() * 0.5), percent);
-    // FRDrive.spin(forward, ct.Axis3.value() - (ct.Axis1.value() * 0.5), percent);
+    BLDrive.spin(forward, Controller1.Axis3.value() + (Controller1.Axis1.value() * 0.5), percent);
+    FLDrive.spin(forward, Controller1.Axis3.value() + (Controller1.Axis1.value() * 0.5), percent);
+    BRDrive.spin(forward, Controller1.Axis3.value() - (Controller1.Axis1.value() * 0.5), percent);
+    FRDrive.spin(forward, Controller1.Axis3.value() - (Controller1.Axis1.value() * 0.5), percent);
     
-    double smoothFactor = 0;
+    // double smoothFactor = 0;
 
 
-    // double leftVelocity = (LeftOut.velocity(percent)  + LeftIn.velocity(percent)) / 2;
-    // double rightVelocity = (RightOut.velocity(percent)  + RightIn.velocity(percent)) / 2;
+    // double leftVelocity = (FLDrive.velocity(percent)  + BLDrive.velocity(percent)) / 2;
+    // double rightVelocity = (FRDrive.velocity(percent)  + BRDrive.velocity(percent)) / 2;
 
     // outputL = (outputL + leftVelocity * smoothFactor) / (smoothFactor + 1);
     // outputR = (outputR + rightVelocity * smoothFactor) / (smoothFactor + 1);
 
-    //printf("OL = %f, OR = %f, F = %f, S = %f\n", outputL, outputR, Axis3Adjusted, Axis1Adjusted);
-    //printf("vel=%f, rO=%f\n",outputR, rightOffset);
-    ///*
+    // printf("OL = %f, OR = %f, F = %f, S = %f\n", outputL, outputR, Axis3Adjusted, Axis1Adjusted);
+    // printf("vel=%f, rO=%f\n",outputR, rightOffset);
+    // /*
 
     // LeftIn.spin(forward, (outputL / 100)  * 12, volt);
     // LeftOut.spin(forward, (outputL / 100)  * 12, volt);
@@ -545,20 +700,24 @@ void usercontrol(void) {
     
     
     // FLYWHEEL CODE --------------------------------------------------
-    while (true) {
+   
       if (Controller1.ButtonR1.pressing()) {
         //make the flywheel go brrr
         FlywheelPID(maxspeed);
       }
-    }
+
 
 
     // PUNCHER CODE --------------------------------------------------
     if (Controller1.ButtonR2.pressing()) {
       // puncher moves up a certain amount.
-      Puncher.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
-      wait(puncherTime, msec);
-      Puncher.stop();
+      Puncher.spin(fwd, 100, pct);
+      // wait(puncherTime, msec);
+      // 
+    } 
+    else 
+    {
+      Puncher.stop(hold);
     }
     
     wait(20, msec); // Sleep the task for a short amount of time to

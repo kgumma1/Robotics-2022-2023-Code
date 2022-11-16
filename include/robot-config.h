@@ -13,6 +13,8 @@ extern motor FlywheelDown;
 extern controller Controller1;
 extern motor Puncher;
 extern inertial inertialSensor;
+extern digital_out trans;
+extern digital_out Indexer;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
