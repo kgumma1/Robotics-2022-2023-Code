@@ -34,12 +34,12 @@ competition Competition;
 // define your global instances of motors and other devices here
 
 /*---------------------------------------------------------------------------*/
-/*                          Pre-Autonomous Functions                         */
+/*                          Pre-Autonomous FunController1ions                         */
 /*                                                                           */
-/*  You may want to perform some actions before the competition starts.      */
-/*  Do them in the following function.  You must return from this function   */
+/*  You may want to perform some aController1ions before the competition starts.      */
+/*  Do them in the following funController1ion.  You must return from this funController1ion   */
 /*  or the autonomous and usercontrol tasks will not be started.  This       */
-/*  function is only called once after the V5 has been powered on and        */
+/*  funController1ion is only called once after the V5 has been powered on and        */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
 
@@ -75,7 +75,7 @@ void pre_auton(void) {
   vexcodeInit();
   calibrateIntertial();
 
-  // All activities that occur before the competition starts
+  // All aController1ivities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
 }
 
@@ -96,14 +96,14 @@ vex::timer Timer3 = vex::timer();
 // spinbase
 void spinLeft(double speed)
 {
-  BLDrive.spin(directionType::fwd, speed , velocityUnits::pct);
-  FLDrive.spin(directionType::fwd, speed , velocityUnits::pct); 
+  BLDrive.spin(fwd, speed , velocityUnits::pct);
+  FLDrive.spin(fwd, speed , velocityUnits::pct); 
 }
 
 void spinRight(double speed)
 {
-  BRDrive.spin(directionType::fwd, speed , velocityUnits::pct);
-  FRDrive.spin(directionType::fwd, speed , velocityUnits::pct);
+  BRDrive.spin(fwd, speed , velocityUnits::pct);
+  FRDrive.spin(fwd, speed , velocityUnits::pct);
 }
 
 void spinLeftV(double speed)
@@ -134,10 +134,10 @@ void stopBase()
   BRDrive.stop();
 }
 
-void driveBasic(double MsecTime, double Speed){
+void driveBasic(double MseController1ime, double Speed){
   spinLeft(Speed);
   spinRight(Speed);
-  wait(MsecTime, msec);
+  wait(MseController1ime, msec);
   stopBase();
 }
 
@@ -488,7 +488,7 @@ void DriveS(double amount, double speed, double timeOut = 10, bool fast = false)
     //printf("x=%f e=%f ie=%f de=%f o=%f vel=%f\n",curDist, error, intError, derivError, output, vel);
 
     //_______________________________________________//
-    //                 ANGLE CORRECT                 //
+    //                 ANGLE CORREController1                 //
     //_______________________________________________//
 
     angleCur = getRobotAngle(); // can use inertial reading instead? tag2
@@ -625,7 +625,7 @@ void autonomous(void) {
   spinRight(3);
   wait(500, msec);
   inertTurnDegPID(0, 0.25);
-  // Intake_Roller.stop();
+  // Intake_Roller_Roller.stop();
   Intake_Roller.spinFor(forward, 0.5, rev);
   stopBase();
  
@@ -644,13 +644,15 @@ void autonomous(void) {
 /*---------------------------------------------------------------------------*/
 
 // --------------------------------------------------------------- //
-//                       FLYWHEEL PID FUNCTION
+//                       FlyWHEEL PID FUNController1ION
 // --------------------------------------------------------------- //
 
 
 void usercontrol(void) {
   // User control code here, inside the loop
+
   bool aPrev = false;
+  bool bPrev = false;
   while (1) {
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
@@ -660,8 +662,6 @@ void usercontrol(void) {
     // Insert user code here. This is where you use the joystick values to
     // update your motors, etc.
     // ........................................................................
-
-    Puncher.setStopping(hold);
     double initSens = 0.8;
     double sensInc = -0.0001;
 
@@ -673,91 +673,50 @@ void usercontrol(void) {
     double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
     double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
 
-
-    // --------------------------------------------------------------- //
-    // These motor commands need to be renamed or assigned to new, 
-    // initialized motors in the motor config section. 
-    // Error Tag: tag1
-    // --------------------------------------------------------------- //
-
-    BLDrive.setStopping(coast);
-    BRDrive.setStopping(coast);
-    FRDrive.setStopping(coast);
-    FLDrive.setStopping(coast);
-
     FLDrive.spin(forward, outputL, pct);
     BLDrive.spin(forward, outputL, pct);
-    BRDrive.spin(forward, outputR, pct);
     FRDrive.spin(forward, outputR, pct);
+    BRDrive.spin(forward, outputR, pct);
+
+    if (Controller1.ButtonY.pressing()) {
+      FlywheelUp.spin(forward, 6.25, volt);
+      FlywheelDown.spin(forward, 6.25, volt);
+    } else {
+      FlywheelUp.stop(coast);
+      FlywheelDown.stop(coast);
+    }
+    printf("topM   : %f\n", FlywheelUp.velocity(pct));
+    printf("BottomM: %f\n", FlywheelDown.velocity(pct));
 
     if (Controller1.ButtonA.pressing() && !aPrev) {
       trans.set(!trans.value());
     }
 
-    aPrev = Controller1.ButtonA.pressing();
-
-
-    // Driver Control Code --------------------------------------------------------------------------------
-
-    BLDrive.spin(forward, Controller1.Axis3.value() + (Controller1.Axis1.value() * 0.5), percent);
-    FLDrive.spin(forward, Controller1.Axis3.value() + (Controller1.Axis1.value() * 0.5), percent);
-    BRDrive.spin(forward, Controller1.Axis3.value() - (Controller1.Axis1.value() * 0.5), percent);
-    FRDrive.spin(forward, Controller1.Axis3.value() - (Controller1.Axis1.value() * 0.5), percent);
-    
-    // double smoothFactor = 0;
-
-
-    // double leftVelocity = (FLDrive.velocity(percent)  + BLDrive.velocity(percent)) / 2;
-    // double rightVelocity = (FRDrive.velocity(percent)  + BRDrive.velocity(percent)) / 2;
-
-    // outputL = (outputL + leftVelocity * smoothFactor) / (smoothFactor + 1);
-    // outputR = (outputR + rightVelocity * smoothFactor) / (smoothFactor + 1);
-
-    // printf("OL = %f, OR = %f, F = %f, S = %f\n", outputL, outputR, Axis3Adjusted, Axis1Adjusted);
-    // printf("vel=%f, rO=%f\n",outputR, rightOffset);
-    // /*
-
-    // LeftIn.spin(forward, (outputL / 100)  * 12, volt);
-    // LeftOut.spin(forward, (outputL / 100)  * 12, volt);
-    // RightOut.spin(forward, (outputR / 100)  * 12, volt);
-    // RightIn.spin(forward, (outputR / 100)  * 12, volt);
-
-    //--------------------------------------------------------------------------------------------------------
-
-    // INTAKE / ROLLER CODE -----------------------------------------------------
-    while(true) {
-      if(Controller1.ButtonL1.pressing())
-      {
-        Intake_Roller.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
-      }
+    if (Controller1.ButtonL1.pressing()) {
+      Intake_Roller.spin(forward, 100, pct);
+    } else if (Controller1.ButtonL2.pressing()) {
+      Intake_Roller.spin(reverse, 100, pct);
+    } else if (Controller1.ButtonR2.pressing()) {
+      Intake_Roller.spin(reverse, 80, pct);
+    } else {
+      Intake_Roller.stop(coast);
     }
 
-    if(Controller1.ButtonL2.pressing())
-    {
-      Intake_Roller.stop(brakeType::hold);
-    }
-    
-    
-    // FLYWHEEL CODE --------------------------------------------------
-   
-      if (Controller1.ButtonR1.pressing()) {
-        //make the flywheel go brrr
-        FlywheelPID(maxspeed);
-      }
-
-
-
-    // PUNCHER CODE --------------------------------------------------
-    if (Controller1.ButtonR2.pressing()) {
-      // puncher moves up a certain amount.
-      Puncher.spin(fwd, 100, pct);
-      // wait(puncherTime, msec);
-      // 
-    } 
-    else 
-    {
+    if (Controller1.ButtonR1.pressing()) {
+      Puncher.spin(fwd, -100, pct);
+    } else {
       Puncher.stop(hold);
     }
+
+    if(Controller1.ButtonB.pressing() && !bPrev) {
+      Indexer.set(!Indexer.value());
+      printf("-----------FlyWHEEL: %ld----------\n", Indexer.value());
+    }
+ 
+    aPrev = Controller1.ButtonA.pressing();
+    bPrev = Controller1.ButtonB.pressing();
+
+
     
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
@@ -765,14 +724,14 @@ void usercontrol(void) {
 }
 
 //
-// Main will set up the competition functions and callbacks.
+// Main will set up the competition funController1ions and callbacks.
 //
 int main() {
   // Set up callbacks for autonomous and driver control periods.
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
 
-  // Run the pre-autonomous function.
+  // Run the pre-autonomous funController1ion.
   pre_auton();
 
   // Prevent main from exiting with an infinite loop.
