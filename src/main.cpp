@@ -1,3 +1,38 @@
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// FlywheelUp           motor         7               
+// FLDrive              motor         2               
+// Intake_Roller        motor         3               
+// BLDrive              motor         4               
+// FRDrive              motor         5               
+// BRDrive              motor         6               
+// FlywheelDown         motor         1               
+// Controller1          controller                    
+// Puncher              motor         20              
+// inertialSensor       inertial      12              
+// trans                digital_out   A               
+// Indexer              digital_out   B               
+// Expander             triport       15              
+// StringShooters       digital_out   A               
+// ---- END VEXCODE CONFIGURED DEVICES ----
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// FlywheelUp           motor         7               
+// FLDrive              motor         2               
+// Intake_Roller        motor         3               
+// BLDrive              motor         4               
+// FRDrive              motor         5               
+// BRDrive              motor         6               
+// FlywheelDown         motor         1               
+// Controller1          controller                    
+// Puncher              motor         20              
+// inertialSensor       inertial      12              
+// trans                digital_out   A               
+// Indexer              digital_out   B               
+// Expander             triport       15              
+// ---- END VEXCODE CONFIGURED DEVICES ----
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
@@ -621,12 +656,12 @@ void autonomous(void) {
   // driveFwdPID(24); // inches
   // inertTurnDegPID(90, 0.25); // target & kp
   Fly(2250, 2);
-  spinLeft(3);
-  spinRight(3);
+  spinLeft(10);
+  spinRight(10);
   wait(500, msec);
   inertTurnDegPID(0, 0.25);
   // Intake_Roller_Roller.stop();
-  Intake_Roller.spinFor(forward, 0.5, rev);
+  Intake_Roller.spinFor(0.5, rotationUnits::rev, 100, velocityUnits::pct);
   stopBase();
  
   
@@ -654,8 +689,10 @@ void usercontrol(void) {
   bool xPrev = false;
   bool bPrev = false;
   bool aPrev = false;
+  bool yPrev = false;
 
   bool l1Prev = false;
+  bool l2Prev = false;
   bool flyOn = false;
 
   bool r1Prev = false;
@@ -664,8 +701,13 @@ void usercontrol(void) {
   int intRollSpeed = 100;
 
   int flywheelSpeed = 600;
+  int motorSpeed = 0;
 
   Puncher.setStopping(hold);
+
+  vex::timer exp = vex::timer();
+  vex::timer fly = vex::timer();
+  vex::timer ind = vex::timer();
 
   while (1) {
     // This is the main execution loop for the user control program.
@@ -697,12 +739,15 @@ void usercontrol(void) {
     // FLYWHEEL
     if (Controller1.ButtonUp.pressing()) {
       flywheelSpeed = 3000; // 380
+      motorSpeed = 380;
     } else if (Controller1.ButtonDown.pressing()) {
       flywheelSpeed = 2500; // 330
+      motorSpeed = 330;
     }
 
     if (Controller1.ButtonL1.pressing() && !l1Prev) {
       flywheelSpeed = 2300; // 290
+      motorSpeed = 290;
       if (!flyOn) {
         flyOn = true;
       } else {
@@ -713,14 +758,21 @@ void usercontrol(void) {
     }
 
     if (flyOn) {
-      FlywheelDown.spin(forward, (flywheelSpeed / 7.0) / 50, volt);
-      FlywheelUp.spin(forward, (flywheelSpeed / 7.0) / 50, volt);
+      double avgSpeed = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2;
+      if (motorSpeed - avgSpeed > 20 || (fly.value() > 0.05 && fly.value() < 0.2 && fly.system() > 0.2)) {
+        FlywheelDown.spin(forward, 11, volt);
+        FlywheelUp.spin(forward, 11, volt);
+      } else {
+        FlywheelDown.spin(forward, (flywheelSpeed / 7.0) / 50, volt);
+        FlywheelUp.spin(forward, (flywheelSpeed / 7.0) / 50, volt);
+      }
+
     }
 
 
 
-    printf("topM   : %f\n", FlywheelUp.velocity(pct));
-    printf("BottomM: %f\n", FlywheelDown.velocity(pct));
+    //printf("topM   : %f\n", FlywheelUp.velocity(pct));
+    //printf("BottomM: %f\n", FlywheelDown.velocity(pct));
 
     // TRANSMISSION
     if (Controller1.ButtonX.pressing() && !xPrev) {
@@ -755,11 +807,19 @@ void usercontrol(void) {
     }
 
     //INDEXER
+    if (Controller1.ButtonL2.pressing() && !l2Prev) {
+      fly.reset();
+    }
     if(Controller1.ButtonL2.pressing()) {
-      Indexer.set(true);
+        if (fly.value() > 0.2) {
+          Indexer.set(!Indexer.value());
+          fly.reset();
+        }
     } else {
       Indexer.set(false);
     }
+
+  
  
 
     // PUNCHER 
@@ -773,11 +833,25 @@ void usercontrol(void) {
       Puncher.stop();
     }
 
+    // EXPANSION
+
+    if (Controller1.ButtonY.pressing() && !yPrev) {
+      exp.reset();
+    }
+    printf("val = %f\n", exp.value());
+    if (Controller1.ButtonY.pressing()) {
+      if (exp.value() > 0.500) {
+        StringShooters.set(true);
+      }
+    }
+
     xPrev = Controller1.ButtonX.pressing();
     l1Prev = Controller1.ButtonL1.pressing();
+    l2Prev = Controller1.ButtonL2.pressing();
     r1Prev = Controller1.ButtonR1.pressing();
     r2Prev = Controller1.ButtonR2.pressing();
     aPrev = Controller1.ButtonA.pressing();
+    yPrev = Controller1.ButtonY.pressing();
 
 
     
