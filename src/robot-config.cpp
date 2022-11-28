@@ -22,6 +22,7 @@ inertial inertialSensor = inertial(PORT12);
 digital_out trans = digital_out(Brain.ThreeWirePort.A);
 digital_out Indexer = digital_out(Brain.ThreeWirePort.B);
 digital_out StringShooters = digital_out(Expander.A);
+line IntakeSensor = line(Expander.H);
 
 // VEXcode generated functions
 // define variable for remote controller enable/disable

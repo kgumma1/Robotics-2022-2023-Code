@@ -15,6 +15,25 @@
 // Indexer              digital_out   B               
 // Expander             triport       15              
 // StringShooters       digital_out   A               
+// IntakeSensor         line          H               
+// ---- END VEXCODE CONFIGURED DEVICES ----
+// ---- START VEXCODE CONFIGURED DEVICES ----
+// Robot Configuration:
+// [Name]               [Type]        [Port(s)]
+// FlywheelUp           motor         7               
+// FLDrive              motor         2               
+// Intake_Roller        motor         3               
+// BLDrive              motor         4               
+// FRDrive              motor         5               
+// BRDrive              motor         6               
+// FlywheelDown         motor         1               
+// Controller1          controller                    
+// Puncher              motor         20              
+// inertialSensor       inertial      12              
+// trans                digital_out   A               
+// Indexer              digital_out   B               
+// Expander             triport       15              
+// StringShooters       digital_out   A               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // Robot Configuration:
@@ -88,6 +107,16 @@ double getInertialReading()
   return 0;
 }
 
+double intakeSensorInit = 0;
+void calibrateIntakeSensor() {
+  wait(1, sec);
+  for (int i = 0; i < 10; i++) {
+    intakeSensorInit += IntakeSensor.reflectivity();
+    wait(20, msec);
+  }
+  intakeSensorInit /= 10.0;
+}
+
 void calibrateIntertial()
 {
   // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
@@ -108,6 +137,7 @@ void calibrateIntertial()
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  calibrateIntakeSensor();
   calibrateIntertial();
 
   // All aController1ivities that occur before the competition starts
@@ -139,6 +169,18 @@ void spinRight(double speed)
 {
   BRDrive.spin(fwd, speed , velocityUnits::pct);
   FRDrive.spin(fwd, speed , velocityUnits::pct);
+}
+
+void spinLeftBack(double speed)
+{
+  BLDrive.spin(reverse, speed , velocityUnits::pct);
+  FLDrive.spin(reverse, speed , velocityUnits::pct); 
+}
+
+void spinRightBack(double speed)
+{
+  BRDrive.spin(reverse, speed , velocityUnits::pct);
+  FRDrive.spin(reverse, speed , velocityUnits::pct);
 }
 
 void spinLeftV(double speed)
@@ -317,11 +359,11 @@ float getRobotAngle()
   return botAngle;
 }
 
-void driveFwdPID(double dist)  //inches
+void driveFwdPID(double dist, bool forwards = true, double kP = 4.5)  //inches
 
 {
 
-  double kP = 4.5; //0.185
+ //0.185
 
   double kI = 0;
 
@@ -381,23 +423,23 @@ void driveFwdPID(double dist)  //inches
     printf("power: %f\n", powers);
  
 
-    spinLeftV(powers);
+    spinLeftV(powers * (forwards ? 1 : -1));
 
-    spinRightV(powers);
+    spinRightV(powers * (forwards ? 1 : -1));
     wait(10, msec);
   }
 
 }
 
-void inertTurnDegPID(double targetValue, double kP)
+void inertTurnDegPID(double targetValue, double kP, bool clockwise = true)
 
 {
 
-  double turnError = targetValue - inertialSensor.heading();
+  double turnError =  targetValue - inertialSensor.heading();
 
  
 
-  while(turnError > 1)
+  while(clockwise ? turnError > 3 : turnError < 3)
 
   {
 
@@ -405,9 +447,9 @@ void inertTurnDegPID(double targetValue, double kP)
 
  
 
-    spinLeft(turnError * kP);
+    spinLeft(turnError * kP * (clockwise ? 1 : 1));
 
-    spinRight(-turnError * kP);
+    spinRight(-turnError * kP * (clockwise ? 1 : 1));
 
  
 
@@ -416,6 +458,7 @@ void inertTurnDegPID(double targetValue, double kP)
     //wait(20, msec);
 
   }
+  stopBase();
 
 }
 
@@ -611,14 +654,12 @@ void FlywheelPID(double targetSpeed, int numDiscs = 1) {
   }
 }
 
-void Fly(int targetSpeed = 2250, int Shots = 2) {
-  int targetspeed = targetSpeed;
+void Fly(int targetSpeed = 2250, int motorSpeed = 210, int Shots = 2, double waitTime = 0.2) {
+  /*int targetspeed = targetSpeed;
   FlywheelDown.spin(fwd, targetspeed / 7.0, rpm);
   FlywheelUp.spin(fwd, targetspeed / 7.0, rpm);
   int shots = 0;
-
   int withinSpeed = 0;
-
   while (shots < Shots){
     if (fabs((FlywheelDown.velocity(rpm) + FlywheelUp.velocity(rpm)) / 2.0 * 7 - targetspeed) < 10){
       withinSpeed++;
@@ -628,20 +669,56 @@ void Fly(int targetSpeed = 2250, int Shots = 2) {
         Indexer.set(false);
         wait(500, msec);
         shots++;
-
       }
     } else {
       withinSpeed = 0;
     }
-
-
-
   }
   FlywheelDown.stop(coast);
-  FlywheelUp.stop(coast);
+  FlywheelUp.stop(coast);*/
+  int shots = 0;
+  vex::timer fly = vex::timer();
+
+
+  while (shots < Shots || Indexer.value()) {
+    double avgSpeed = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2;
+    if (motorSpeed - avgSpeed > 20 || (fly.value() > 0.05 && fly.value() < waitTime && fly.system() > waitTime)) {
+      FlywheelDown.spin(forward, 11, volt);
+      FlywheelUp.spin(forward, 11, volt);
+    } else {
+      FlywheelDown.spin(forward, (targetSpeed / 7.0) / 50, volt);
+      FlywheelUp.spin(forward, (targetSpeed / 7.0) / 50, volt);
+    }
+    
+    printf("t = %f : s = %f : ind = %d\n", fly.value(), motorSpeed - avgSpeed, Indexer.value() ? 1 : 0);
+    if (fly.value() > waitTime && Indexer.value()) {
+      Indexer.set(false);
+      fly.reset();
+    } else if (fly.value() > waitTime && motorSpeed - avgSpeed < 10 && !Indexer.value()) {
+      Indexer.set(true);
+      shots++;
+      fly.reset();
+    }
+    wait(10, msec);
+  }
+  wait(waitTime, sec);
+  Indexer.set(false);
+
 }
 
-
+int intakeNum() {
+  Intake_Roller.spin(reverse, 100, pct); 
+  for (int i = 0; i < 3; i++) {
+    while (IntakeSensor.reflectivity() < intakeSensorInit + 4) {
+      wait(5, msec);
+    }
+    while (IntakeSensor.reflectivity() >= intakeSensorInit + 4) {
+      wait(5, msec);
+    }
+  }
+  Intake_Roller.spin(forward, 100, pct); 
+  return 1;
+}
 
 void autonomous(void) {
   // ..........................................................................
@@ -655,16 +732,88 @@ void autonomous(void) {
   // Brain.Screen.print(i+1);
   // driveFwdPID(24); // inches
   // inertTurnDegPID(90, 0.25); // target & kp
-  Fly(2250, 2);
-  spinLeft(10);
-  spinRight(10);
-  wait(500, msec);
-  inertTurnDegPID(0, 0.25);
-  // Intake_Roller_Roller.stop();
-  Intake_Roller.spinFor(0.5, rotationUnits::rev, 100, velocityUnits::pct);
-  stopBase();
- 
+  /*while ((FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 < 350)  {
+    FlywheelDown.spin(forward, 3400.0 / 7 / 50, volt);
+    FlywheelUp.spin(forward, 3400.0 / 7 / 50, volt);
+  }
+  wait(1500, msec);
+  Indexer.set(true);
+  wait(300, msec);
+  Indexer.set(false);
+  wait(1800, msec);
+  Indexer.set(true);
+  wait(300, msec);
+  Indexer.set(false);*/
+  spinLeft(5);
+  spinRight(5);
+  wait(1000, msec);
+  Intake_Roller.spinFor(0.16,  rotationUnits::rev, 100, velocityUnits::pct, true);
+  stopBase();/*
+  driveFwdPID(25, false);
+  BLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
+  FLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
+  BRDrive.spinFor(reverse, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
+  FRDrive.spinFor(reverse, 110, rotationUnits::deg, 50, velocityUnits::pct, true); 
+  StringShooters.set(true);
+  /*driveFwdPID(22, true);
+  spinLeft(5);
+  spinRight(5);
+  wait(1000, msec);
+  Intake_Roller.spinFor(0.5, rotationUnits::rev, 100, velocityUnits::pct);*/
+
+
+/*
   
+  spinLeft(5);
+  spinRight(5);
+  wait(1000, msec);
+  Intake_Roller.spinFor(0.15, rotationUnits::rev, 100, velocityUnits::pct);
+  wait(100, msec);
+  stopBase();
+  driveFwdPID(3, false, 10);
+  stopBase();
+  /*BLDrive.spinFor(reverse, 30, rotationUnits::deg, 50, velocityUnits::pct, false);
+  FLDrive.spinFor(reverse, 30, rotationUnits::deg, 50, velocityUnits::pct, false);
+  BRDrive.spinFor(forward, 30, rotationUnits::deg, 50, velocityUnits::pct, false);
+  FRDrive.spinFor(forward, 30, rotationUnits::deg, 50, velocityUnits::pct, true);
+  Fly(3100, 400, 2, 0.30);*/
+  //driveFwdPID(5, false, 7);
+  /**//*
+  BLDrive.spinFor(reverse, 10, rotationUnits::deg, 50, velocityUnits::pct, false);
+  FLDrive.spinFor(reverse, 10, rotationUnits::deg, 50, velocityUnits::pct, false);
+  BRDrive.spinFor(forward, 10, rotationUnits::deg, 50, velocityUnits::pct, false);
+  FRDrive.spinFor(forward, 10, rotationUnits::deg, 50, velocityUnits::pct, true);
+  wait(0.5, sec);
+  inertTurnDegPID(233, 0.5, false);
+  //vex::task t = vex::task(intakeNum);
+  Intake_Roller.spin(forward, 100, pct);
+  driveFwdPID(134);
+  inertTurnDegPID(270, 0.5, true);
+  spinLeft(15);
+  spinRight(15);
+  wait(2, sec);
+  Intake_Roller.spinFor(0.15, rotationUnits::rev, 100, velocityUnits::pct);*/
+
+  /*
+  spinLeftBack(10);
+  spinRightBack(10);
+  wait(500, msec);
+  inertTurnDegPID(270, 0.25);
+  Intake_Roller.spinFor(10, rotationUnits::rev, 100, velocityUnits::pct, false);
+  driveFwdPID(46);
+  inertTurnDegPID(45, 0.25);
+  Intake_Roller.stop(coast);
+  Fly(2000, 380, 3, 0.3);
+  inertTurnDegPID(270, 0.25);
+  Intake_Roller.spinFor(10, rotationUnits::rev, 100, velocityUnits::pct, false);
+  driveFwdPID(30);
+  inertTurnDegPID(90, 0.25);
+  driveFwdPID(30);
+  inertTurnDegPID(180, 0.25);
+  Intake_Roller.spinFor(10, rotationUnits::rev, 100, velocityUnits::pct, false);
+  driveFwdPID(20);
+  Fly(3000, 380, 3, 0.3);*/
+
 
 }
 
@@ -698,7 +847,9 @@ void usercontrol(void) {
   bool r1Prev = false;
   bool r2Prev = false;
   bool intRollOn = false;
-  int intRollSpeed = 100;
+  int intRollSpeed = 0;
+  int discCount = 0;
+  bool intakingDisc = false;
 
   int flywheelSpeed = 600;
   int motorSpeed = 0;
@@ -708,8 +859,20 @@ void usercontrol(void) {
   vex::timer exp = vex::timer();
   vex::timer fly = vex::timer();
   vex::timer ind = vex::timer();
+  vex::timer sen = vex::timer();
 
   while (1) {
+    
+    Brain.Screen.clearScreen();
+    Brain.Screen.setFont(mono20);
+    Brain.Screen.printAt(5, 20, "MOTOR TEMPERATURES");
+    Brain.Screen.printAt(5, 40, "LeftFront:      %.0f", FLDrive.temperature(vex::temperatureUnits::celsius));
+    Brain.Screen.printAt(5, 60, "LeftRear:       %.0f", BLDrive.temperature(vex::temperatureUnits::celsius));
+    Brain.Screen.printAt(5, 80, "RightFront:     %.0f", FRDrive.temperature(vex::temperatureUnits::celsius));
+    Brain.Screen.printAt(5, 100, "RightRear:      %.0f", BRDrive.temperature(vex::temperatureUnits::celsius));
+    Brain.Screen.printAt(5, 120, "Roller/Intake:  %.0f", Intake_Roller.temperature(vex::temperatureUnits::celsius));
+    Brain.Screen.printAt(5, 140, "TopFW:          %.0f", FlywheelUp.temperature(vex::temperatureUnits::celsius));
+    Brain.Screen.printAt(5, 160, "BottomFW:       %.0f", FlywheelDown.temperature(vex::temperatureUnits::celsius));
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
     // values based on feedback from the joysticks.
@@ -735,25 +898,26 @@ void usercontrol(void) {
     FRDrive.spin(forward, outputR, pct);
     BRDrive.spin(forward, outputR, pct);
 
+    
 
     // FLYWHEEL
     if (Controller1.ButtonUp.pressing()) {
-      flywheelSpeed = 3000; // 380
-      motorSpeed = 380;
+      flywheelSpeed = 2500; // 
+      motorSpeed = 340;
     } else if (Controller1.ButtonDown.pressing()) {
-      flywheelSpeed = 2500; // 330
-      motorSpeed = 330;
+      flywheelSpeed = 2000; // 330
+      motorSpeed = 260;
     }
 
     if (Controller1.ButtonL1.pressing() && !l1Prev) {
-      flywheelSpeed = 2300; // 290
-      motorSpeed = 290;
+      flywheelSpeed = 1700; // 300
+      motorSpeed = 210;
       if (!flyOn) {
         flyOn = true;
-      } else {
+      } else {/*
         FlywheelDown.stop(coast);
         FlywheelUp.stop(coast);
-        flyOn = false;
+        flyOn = false;*/
       }
     }
 
@@ -780,8 +944,32 @@ void usercontrol(void) {
     }
 
     // INTAKE/ROLLER
+    if (IntakeSensor.reflectivity() >= intakeSensorInit + 5 && !intakingDisc && intakeSensorInit != 0) {
+      discCount++;
+      intakingDisc = true;
+    }
+    if (IntakeSensor.reflectivity() >= intakeSensorInit + 6) {
+      sen.reset();
+    }
+    if (IntakeSensor.reflectivity() <= intakeSensorInit + 2) {
+      if (intakingDisc) {
+        sen.reset();
+      }
+      intakingDisc = false;
+    }
+    printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
+    if (discCount >= 3 && sen.value() > 1) {
+      discCount = discCount >= 0 ? discCount : 0;
+      intRollOn = false;
+      intRollSpeed = 0;
+    }
+
     if (Controller1.ButtonR1.pressing() && !r1Prev) {
       if (intRollSpeed != -100) {
+        if (discCount > 2) {
+          discCount--;
+          discCount = discCount >= 0 ? discCount : 0;
+        }
         intRollOn = true;
         intRollSpeed = -100;
       } else {
@@ -813,6 +1001,10 @@ void usercontrol(void) {
     if(Controller1.ButtonL2.pressing()) {
         if (fly.value() > 0.2) {
           Indexer.set(!Indexer.value());
+          if (Indexer.value() == false) {
+            discCount--;
+            discCount = discCount >= 0 ? discCount : 0;
+          }
           fly.reset();
         }
     } else {
@@ -821,7 +1013,7 @@ void usercontrol(void) {
 
   
  
-
+/*
     // PUNCHER 
     if (Controller1.ButtonB.pressing()) {
       Puncher.spinFor((2200 - abs((int)(Puncher.position(degrees)) % 2200)) * -1, rotationUnits::deg, 100, velocityUnits::pct, false);
@@ -832,17 +1024,21 @@ void usercontrol(void) {
     if (!Controller1.ButtonA.pressing() && aPrev) {
       Puncher.stop();
     }
+    */
 
     // EXPANSION
 
     if (Controller1.ButtonY.pressing() && !yPrev) {
       exp.reset();
     }
-    printf("val = %f\n", exp.value());
+    //printf("val = %f\n", exp.value());
     if (Controller1.ButtonY.pressing()) {
       if (exp.value() > 0.500) {
         StringShooters.set(true);
       }
+      FlywheelDown.stop(brake);
+      FlywheelUp.stop(brake);
+      flyOn = false;
     }
 
     xPrev = Controller1.ButtonX.pressing();
