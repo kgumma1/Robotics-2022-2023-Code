@@ -18,6 +18,9 @@ extern digital_out Indexer;
 extern triport Expander;
 extern digital_out StringShooters;
 extern line IntakeSensor;
+extern double intakeSensorInit;
+extern double Al, Ar, As, rs, xPos1, yPos1;
+
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
