@@ -114,7 +114,7 @@ void calibrateIntakeSensor() {
 void calibrateIntertial()
 {
   // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
-  wait(3, sec);
+  wait(1, sec);
   inertialSensor.calibrate();
   Brain.Screen.clearScreen();
   Brain.Screen.print("...");
@@ -174,11 +174,8 @@ void autonomous(void) {
   Indexer.set(true);
   wait(300, msec);
   Indexer.set(false);*/
-  spinLeft(5);
-  spinRight(5);
-  wait(1000, msec);
-  Intake_Roller.spinFor(0.16,  rotationUnits::rev, 100, velocityUnits::pct, true);
-  stopBase();/*
+  testing();
+  /*
   driveFwdPID(25, false);
   BLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
   FLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);

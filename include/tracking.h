@@ -3,7 +3,7 @@
 using namespace vex;
 
 const double PI = 3.14159265;
-double r = 3.25/2; // radius of wheel or radius of robot?
+double r = 3.375; // radius of wheel or radius of robot?
 double tWheelCirc = 3.25 * PI;
 double magicOffset = 0.1;
 double Al, Ar, As, rs, xPos1, yPos1;

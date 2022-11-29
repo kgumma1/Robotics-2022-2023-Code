@@ -62,12 +62,12 @@ void spinBase(double Rspeed, double Lspeed)
 }
 
 // stopbase
-void stopBase()
+void stopBase(brakeType b = coast)
 {
-  FLDrive.stop();
-  BLDrive.stop();
-  FRDrive.stop();
-  BRDrive.stop();
+  FLDrive.stop(b);
+  BLDrive.stop(b);
+  FRDrive.stop(b);
+  BRDrive.stop(b);
 }
 
 void driveBasic(double MseController1ime, double Speed){
@@ -93,13 +93,13 @@ void resetTrackers()
 
 void Turn(double destination, double speed, double timeOut=5) {
   double curAngle, turnAmount, startAngle, output, speedR, speedL, absOutput, passed = 1000, PIDspeed, profile, curAngle2, tAngle, curAngleSgn, prevAngleSgn;
-  double error, prevError, derivError, intError;
+  double error, prevError, derivError, intError = 0;
   bool doProfile = true, check = true;
   double incFrac = 0.3;
   double decFrac = 0.3;
-  double Kd = 0.0; //0.01
-  double Ki = 0.01; //0.0
-  double Kp = 0.67; //0.67, recent 0.8
+  double Kd = 1; //0.01
+  double Ki = 0.015; //0.0
+  double Kp = 0.15; //0.67, recent 0.8
   double speedConst = 8;
   double threshold = 0.2;
 
@@ -146,12 +146,18 @@ void Turn(double destination, double speed, double timeOut=5) {
     //_______________________________________________//
     error = turnAmount - curAngle;
     derivError = error - prevError;
-    intError = error + prevError;
+    if (fabs(Kd * derivError) < 0.2) {
+      intError = error + intError;
+    }
+    if (fabs(Kd * derivError) > 0.5) {
+      intError = 0;
+    }
+
     PIDspeed = Kp*error + Kd*derivError + Ki*intError;
 
     prevAngle = curAngle;
 
-    wait(10, msec);
+
     prevError = error;
 
     /*
@@ -172,13 +178,19 @@ void Turn(double destination, double speed, double timeOut=5) {
     //JUST USE PID SPEED
 
     output = PIDspeed;
+    if (fabs(output) > speed) {
+      output = output > 0 ? speed : -speed;
+    }
 
     speedR = -output;
     speedL = output;
 
-    spinBase(speedR, speedL);
-
-    //printf("turnamount=%f curAngle=%f error=%f output=%f profileSpeed=%f PIDcalculated=%f \n\n",turnAmount, curAngle, error, output, profile, PIDspeed);
+    FRDrive.spin(fwd, speedR, volt);
+    BRDrive.spin(fwd, speedR, volt);
+    FLDrive.spin(fwd, speedL, volt);
+    BLDrive.spin(fwd, speedL, volt);
+    wait(10, msec);
+    printf("turnamount=%f curAngle=%f error=%f output=%f int=%f deriv=%f PIDcalculated=%f \n\n",turnAmount, curAngle, error, output, intError, derivError, PIDspeed);
 
     
     if(((curAngle>turnAmount-threshold && turnAmount>0) || (curAngle<turnAmount+threshold && turnAmount<0)) && !triggered)
@@ -187,12 +199,12 @@ void Turn(double destination, double speed, double timeOut=5) {
       triggered = true;
     }
 
-    printf("loggedTime = %f, loggedTime+bounceTime = %f, curTime = %f\n", loggedTime, loggedTime+bounceTime, curTime);
+    //printf("loggedTime = %f, loggedTime+bounceTime = %f, curTime = %f\n", loggedTime, loggedTime+bounceTime, curTime);
 
-  }while(curTime < bounceTime+loggedTime && curTime < timeOut);
+  }while(fabs(error) > 2/*curTime < bounceTime+loggedTime && curTime < timeOut*/);
   //((curAngle<turnAmount-threshold && turnAmount>0) || (curAngle>turnAmount+threshold && turnAmount<0)) && timeOut > curTime
 
-  stopBase();
+  stopBase(hold);
 }
 
 // --------------------------------------------- //
@@ -202,9 +214,7 @@ vex::timer Timer1 = vex::timer();
 
 
 
-void driveFwdPID(double dist, bool forwards = true, double kP = 4.5)  //inches
-
-{
+void driveFwdPID(double dist, bool forwards = true, double kP = 4.5) {
 
  //0.185
 
@@ -272,6 +282,66 @@ void driveFwdPID(double dist, bool forwards = true, double kP = 4.5)  //inches
     wait(10, msec);
   }
 
+}
+
+void drivePID(double dist, double timeOut = 10) {
+  double error[2];
+  double prevError[2];
+  double powers[2];
+  double kP = 0.023;
+  double kI = 0.001;
+  double kD = 0.12;
+
+  double integral[2];
+  double derivative[2];
+
+  rightEncoder.resetRotation();
+  leftEncoder.resetRotation();
+  prevError[0] = ((dist / (3.25 * PI)) * 360);
+  prevError[1] = ((dist / (3.25 * PI)) * 360);
+
+  vex::timer exitTimer = vex::timer();
+
+  do {
+    error[0] = ((dist / (3.25 * PI)) * 360) - rightEncoder.position(deg);
+    error[1] = ((dist / (3.25 * PI)) * 360) - leftEncoder.position(deg);
+
+
+    if (fabs(derivative[0] * kD) < 0.2) {
+      integral[0] = integral[0] + error[0];
+    }
+    if (fabs(derivative[1] * kD) < 0.2) {
+      integral[1] = integral[1] + error[1];
+    }
+    if (fabs(derivative[0] * kD) > 0.5) {
+      integral[0] = 0;
+    }
+    if (fabs(derivative[1] * kD) > 0.5) {
+      integral[1] = 0;
+    }
+    
+
+    derivative[0] = error[0] - prevError[0];
+    derivative[1] = error[1] - prevError[1];
+
+    prevError[0] = error[0];
+    prevError[1] = error[1];
+
+
+    powers[0] = kP * error[0] + kI * integral[0] + kD * derivative[0];
+    powers[1] = kP * error[1] + kI * integral[1] + kD * derivative[1];
+
+    FRDrive.spin(fwd, powers[0], volt);
+    BRDrive.spin(fwd, powers[0], volt);
+    FLDrive.spin(fwd, powers[1], volt);
+    BLDrive.spin(fwd, powers[1], volt);
+
+    //printf("left = %f, right = %f, errorL = %f, errorR = %f\n", powers[1], powers[0], error[1], error[0]);
+    printf("prop = %f, int = %f, dev = %f, errorR = %f, errorL = %f\n", kP * error[0], integral[0], derivative[0], error[0], error[1]);
+    wait(10, msec);
+
+  } while ((fabs(error[0]) > 10 && fabs(error[1]) > 10) && exitTimer.value() < timeOut);
+  stopBase(hold);
 }
 
 void inertTurnDegPID(double targetValue, double kP, bool clockwise = true)

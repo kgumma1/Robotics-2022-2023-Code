@@ -18,6 +18,10 @@ extern digital_out Indexer;
 extern triport Expander;
 extern digital_out StringShooters;
 extern line IntakeSensor;
+extern encoder rightEncoder;
+extern encoder leftEncoder;
+extern encoder backEncoder;
+
 extern double intakeSensorInit;
 extern double Al, Ar, As, rs, xPos1, yPos1;
 

@@ -23,6 +23,9 @@ digital_out trans = digital_out(Brain.ThreeWirePort.A);
 digital_out Indexer = digital_out(Brain.ThreeWirePort.B);
 digital_out StringShooters = digital_out(Expander.A);
 line IntakeSensor = line(Expander.H);
+encoder rightEncoder = encoder(Brain.ThreeWirePort.E);
+encoder leftEncoder = encoder(Brain.ThreeWirePort.C);
+encoder backEncoder = encoder(Brain.ThreeWirePort.G);
 
 // VEXcode generated functions
 // define variable for remote controller enable/disable
