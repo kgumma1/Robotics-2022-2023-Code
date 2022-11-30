@@ -174,7 +174,8 @@ void autonomous(void) {
   Indexer.set(true);
   wait(300, msec);
   Indexer.set(false);*/
-  testing();
+  matchCloseSide();
+  //testing();
   /*
   driveFwdPID(25, false);
   BLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);

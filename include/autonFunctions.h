@@ -284,7 +284,7 @@ void driveFwdPID(double dist, bool forwards = true, double kP = 4.5) {
 
 }
 
-void drivePID(double dist, double timeOut = 10) {
+void drivePID(double dist, double maxSpeed = 12, double timeOut = 10) {
   double error[2];
   double prevError[2];
   double powers[2];
@@ -299,6 +299,9 @@ void drivePID(double dist, double timeOut = 10) {
   leftEncoder.resetRotation();
   prevError[0] = ((dist / (3.25 * PI)) * 360);
   prevError[1] = ((dist / (3.25 * PI)) * 360);
+
+  integral[0] = 0;
+  integral[1] = 0;
 
   vex::timer exitTimer = vex::timer();
 
@@ -331,13 +334,32 @@ void drivePID(double dist, double timeOut = 10) {
     powers[0] = kP * error[0] + kI * integral[0] + kD * derivative[0];
     powers[1] = kP * error[1] + kI * integral[1] + kD * derivative[1];
 
+    printf("______________________________pRight=%f pLeft=%f\n", powers[0], powers[1]);
+
+    if (fabs(powers[0]) > maxSpeed) {
+      if (powers[0] > 0) {
+        powers[0] = maxSpeed;
+      } else {
+        powers[0] = -maxSpeed;
+      }
+    }
+    if (fabs(powers[1]) > maxSpeed) {
+      if (powers[1] > 0) {
+        powers[1] = maxSpeed;
+      } else {
+        powers[1] = -maxSpeed;
+      }
+    }
+
+    printf("pRight=%f pLeft=%f____________________________\n", powers[0], powers[1]);
+
     FRDrive.spin(fwd, powers[0], volt);
     BRDrive.spin(fwd, powers[0], volt);
     FLDrive.spin(fwd, powers[1], volt);
     BLDrive.spin(fwd, powers[1], volt);
 
     //printf("left = %f, right = %f, errorL = %f, errorR = %f\n", powers[1], powers[0], error[1], error[0]);
-    printf("prop = %f, int = %f, dev = %f, errorR = %f, errorL = %f\n", kP * error[0], integral[0], derivative[0], error[0], error[1]);
+    //printf("prop = %f, int = %f, dev = %f, errorR = %f, errorL = %f, pow = %f\n", kP * error[0], integral[0], derivative[0], error[0], error[1], powers[1]);
     wait(10, msec);
 
   } while ((fabs(error[0]) > 10 && fabs(error[1]) > 10) && exitTimer.value() < timeOut);
@@ -488,51 +510,84 @@ void DriveS(double amount, double speed, double timeOut = 10, bool fast = false)
 
 }
 
-double kp = 0.003;
-double ki = 0.0;
-double kd = 0.0;
-double prevError = 0.0;
-double error = 0.0;
-double totalError = 0.0; // += error
-double der = 0.0; // = error-preverror
-double speedAvg = 0;
-double Power = 0;
-bool ReadyShoot = false;
-double maxspeed = 4200; //4200 rpm
-double puncherTime = 50;
+int discCount = 0;
+double targetSpeed = 0;
+double shotD = 0.2;
 
-void FlywheelPID(double targetSpeed, int numDiscs = 1) {
-  int shots = 0;
-  while(true){
-    speedAvg = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) * 7.0 /2; 
-    error = targetSpeed - speedAvg;
-    printf("error: %f\n", error);
-    printf("speed: %f\n", speedAvg);
-    if (fabs(error) <= 100){ //less that 0.5 RPM from target RPM
-      ReadyShoot = true;
-    }
-    else{
-      ReadyShoot = false;
-    }
-    Power = (targetSpeed / 350.0) + (error*kp + totalError * ki + (error - prevError) * kd); ///12 for voltage
-    FlywheelUp.spin(forward, Power, volt); //final output in volts
-    FlywheelDown.spin(forward, Power, volt);
-    prevError = error; //derivative
-    totalError += error;
-    wait(20, msec);
-   if (ReadyShoot) {
-     Indexer.set(true);
-     wait(300, msec);
-     Indexer.set(false);
-     shots++;
-     printf("shots: %d\n", shots);
-     if (shots == numDiscs) {
-       return;
-     }
-   }
-   wait(10, msec);
-  }
+
+void resetDiscCount() {
+  discCount = 0;
+  targetSpeed = 0;
+  shotD = 0.2;
 }
+
+int numQueued() {
+  return discCount;
+}
+
+int queueDiscs(int n, double target = -1, double shotDelay = -1) {
+  discCount += n;
+  targetSpeed = target > 0 ? target : targetSpeed;
+  shotD = shotDelay > 0 ? shotDelay : shotD;
+  return discCount;
+}
+
+double kP = 0.00012;
+double kP2 = 0.0001;
+double kI = 0;
+double kD = 0.005;
+
+void adjustFPID(double newkP = 0.00012, double newkP2 = 0.0001, double newkI = 0, double newkD = 0.005) {
+  kP = newkP;
+  kP2 = newkP2;
+  kI = newkI;
+  kD = newkD;
+}
+
+int flywheelPID() {
+
+
+  double integral = 0, derivative;
+
+  double error = targetSpeed;
+  double prevError = targetSpeed;
+  double output = 0;
+  double outputChange = 0;
+  vex::timer shotTimer = vex::timer();
+  do {
+    error = targetSpeed - ((FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7);
+    if (targetSpeed == 0) {
+      FlywheelUp.stop(coast);
+      FlywheelDown.stop(coast);
+      continue;
+    }
+    //integral = integral + error;
+    
+    derivative = error - prevError;
+    
+    prevError = error;
+    
+    outputChange = error * (error > 0 ? kP : kP2) + integral * kI + derivative * kD;
+  
+    output = output + outputChange;
+    FlywheelUp.spin(fwd, output, volt);
+    FlywheelDown.spin(fwd, output, volt);
+    if (fabs(error) < 30 && fabs(derivative) < 20 && Indexer.value() == false && shotTimer.value() > shotD && discCount > 0) {
+      Indexer.set(true);
+      discCount--;
+      shotTimer.reset();
+      printf("---------------shoots----------------%llu\n", 111111111111111111);
+    }
+    if (Indexer.value() == true && shotTimer.value() > shotD) {
+      Indexer.set(false);
+      shotTimer.reset();
+    }
+    printf("error=%f outputChange=%f output=%f speed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, derivative);
+    wait(10, msec);
+  } while (true);
+  return 1;
+}
+
 
 void Fly(int targetSpeed = 2250, int motorSpeed = 210, int Shots = 2, double waitTime = 0.2) {
   /*int targetspeed = targetSpeed;
