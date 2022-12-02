@@ -17,6 +17,7 @@ extern digital_out trans;
 extern digital_out Indexer;
 extern triport Expander;
 extern digital_out StringShooters;
+extern digital_out angleChanger;
 extern line IntakeSensor;
 extern encoder rightEncoder;
 extern encoder leftEncoder;

@@ -37,7 +37,13 @@ void drive() {
   int flywheelSpeed = 600;
   int motorSpeed = 0;
 
+  double waitTime = 0.15;
+  double recoverTime = 0.25;
+
   Puncher.setStopping(hold);
+  
+  
+  angleChanger.set(true);
 
   vex::timer exp = vex::timer();
   vex::timer fly = vex::timer();
@@ -84,7 +90,7 @@ void drive() {
     }
 
     if (Controller1.ButtonL1.pressing() && !l1Prev) {
-      flywheelSpeed = 1700; // 300
+      flywheelSpeed = 1500; // 300
       motorSpeed = 210;
       if (!flyOn) {
         flyOn = true;
@@ -97,7 +103,7 @@ void drive() {
 
     if (flyOn) {
       double avgSpeed = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2;
-      if (motorSpeed - avgSpeed > 20 || (fly.value() > 0.05 && fly.value() < 0.2 && fly.system() > 0.2)) {
+      if (motorSpeed - avgSpeed > 20 || (fly.value() > 0.05 && fly.value() < recoverTime && fly.system() > 0.2)) {
         FlywheelDown.spin(forward, 11, volt);
         FlywheelUp.spin(forward, 11, volt);
       } else {
@@ -132,7 +138,7 @@ void drive() {
       intakingDisc = false;
     }
     printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
-    if (discCount >= 3 && sen.value() > 1) {
+    if (discCount >= 3 && sen.value() > 0.5) {
       discCount = discCount >= 0 ? discCount : 0;
       intRollOn = false;
       intRollSpeed = 0;
@@ -173,7 +179,7 @@ void drive() {
       fly.reset();
     }
     if(Controller1.ButtonL2.pressing()) {
-        if (fly.value() > 0.2) {
+        if (fly.value() > waitTime) {
           Indexer.set(!Indexer.value());
           if (Indexer.value() == false) {
             discCount--;

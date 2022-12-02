@@ -554,6 +554,7 @@ int flywheelPID() {
   double output = 0;
   double outputChange = 0;
   vex::timer shotTimer = vex::timer();
+  int errorCount = 0;
   do {
     error = targetSpeed - ((FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7);
     if (targetSpeed == 0) {
@@ -569,10 +570,15 @@ int flywheelPID() {
     
     outputChange = error * (error > 0 ? kP : kP2) + integral * kI + derivative * kD;
   
-    output = output + outputChange;
+    output = output + outputChange >= 12 ? 12 : output + outputChange;
     FlywheelUp.spin(fwd, output, volt);
     FlywheelDown.spin(fwd, output, volt);
-    if (fabs(error) < 30 && fabs(derivative) < 20 && Indexer.value() == false && shotTimer.value() > shotD && discCount > 0) {
+    if (fabs(error) < 100) {
+      errorCount++;
+    } else {
+      errorCount = 0;
+    }
+    if (errorCount >= 5 && /*fabs(derivative) < 20 &&*/ Indexer.value() == false && shotTimer.value() > shotD && discCount > 0) {
       Indexer.set(true);
       discCount--;
       shotTimer.reset();
