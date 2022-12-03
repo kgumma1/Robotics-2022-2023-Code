@@ -15,6 +15,64 @@ void displayInfo() {
   Brain.Screen.printAt(5, 160, "BottomFW:       %.0f", FlywheelDown.temperature(vex::temperatureUnits::celsius));
 }
 
+int aimSpeed = 10;
+int lowBound = 178;
+int highBound = 183;
+int cXs[10];
+
+int autoAimMacro() {
+  while (true) {
+    Vision.takeSnapshot(Vision__SIG_1);
+    
+    if (Vision.largestObject.exists) {
+      if (Vision.largestObject.centerX < lowBound) {
+        FRDrive.spin(forward, aimSpeed, pct);
+        BRDrive.spin(forward, aimSpeed, pct);
+        FLDrive.spin(reverse, aimSpeed, pct);
+        BLDrive.spin(reverse, aimSpeed, pct);
+      } else if (Vision.largestObject.centerX > highBound) {
+        FRDrive.spin(reverse, aimSpeed, pct);
+        BRDrive.spin(reverse, aimSpeed, pct);
+        FLDrive.spin(forward, aimSpeed, pct);
+        BLDrive.spin(forward, aimSpeed, pct);
+      } else {
+        FRDrive.stop(hold);
+        BRDrive.stop(hold);
+        FLDrive.stop(hold);
+        BLDrive.stop(hold);
+      }
+    }
+    printf("Object1 = %d, x = %d, y = %d\n", Vision.largestObject.exists, Vision.largestObject.centerX, Vision.largestObject.centerY);
+    /*
+    Vision.takeSnapshot(Vision__SIG_2);
+    
+    if (Vision.largestObject.exists) {
+      if (Vision.largestObject.centerX < lowBound) {
+        FRDrive.spin(forward, aimSpeed, pct);
+        BRDrive.spin(forward, aimSpeed, pct);
+        FLDrive.spin(reverse, aimSpeed, pct);
+        BLDrive.spin(reverse, aimSpeed, pct);
+      } else if (Vision.largestObject.centerX > highBound) {
+        FRDrive.spin(reverse, aimSpeed, pct);
+        BRDrive.spin(reverse, aimSpeed, pct);
+        FLDrive.spin(forward, aimSpeed, pct);
+        BLDrive.spin(forward, aimSpeed, pct);
+      } else {
+        FRDrive.stop(hold);
+        BRDrive.stop(hold);
+        FLDrive.stop(hold);
+        BLDrive.stop(hold);
+      }
+    }
+    printf("Object2 = %d, x = %d, y = %d\n", Vision.largestObject.exists, Vision.largestObject.centerX, Vision.largestObject.centerY);
+*/
+    wait(100, msec);
+  }
+
+
+}
+
+
 void drive() {
     // User control code here, inside the loop
 
@@ -25,7 +83,7 @@ void drive() {
 
   bool l1Prev = false;
   bool l2Prev = false;
-  bool flyOn = false;
+  bool flyOn = true;
 
   bool r1Prev = false;
   bool r2Prev = false;
@@ -37,8 +95,11 @@ void drive() {
   int flywheelSpeed = 600;
   int motorSpeed = 0;
 
-  double waitTime = 0.15;
+  double waitTime = 0.17;
   double recoverTime = 0.25;
+
+    flywheelSpeed = 1800; // 300y
+    motorSpeed = 170;
 
   Puncher.setStopping(hold);
   
@@ -49,6 +110,12 @@ void drive() {
   vex::timer fly = vex::timer();
   vex::timer ind = vex::timer();
   vex::timer sen = vex::timer();
+
+  vex::task autoAim = vex::task(autoAimMacro);
+
+  bool aiming = false;
+
+  autoAim.suspend();
 
   while (1) {
     
@@ -62,47 +129,64 @@ void drive() {
     // update your motors, etc.
     // ........................................................................
     // DRIVE
-    double initSens = 0.8;
-    double sensInc = -0.0001;
+    if (Controller1.ButtonL1.pressing() && !l1Prev) {
+      aiming = true;
+      autoAim.resume();
+    }
+    
+    if (abs(Controller1.Axis1.position()) > 5 || abs(Controller1.Axis3.position()) > 5) {
+      aiming = false;
+      autoAim.suspend();
+    }
+    
+    if (!aiming) {
+      double initSens = 0.8;
+      double sensInc = -0.0001;
 
 
-    double Axis3Adjusted = Controller1.Axis3.position();
-    double Axis1Adjusted = Controller1.Axis1.position() * 0.75;
+      double Axis3Adjusted = Controller1.Axis3.position();
+      double Axis1Adjusted = Controller1.Axis1.position() * 0.75;
 
 
-    double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
-    double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
+      double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
+      double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
+      
+      FLDrive.spin(forward, outputL, pct);
+      BLDrive.spin(forward, outputL, pct);
+      FRDrive.spin(forward, outputR, pct);
+      BRDrive.spin(forward, outputR, pct);
+    }
 
-    FLDrive.spin(forward, outputL, pct);
-    BLDrive.spin(forward, outputL, pct);
-    FRDrive.spin(forward, outputR, pct);
-    BRDrive.spin(forward, outputR, pct);
+    
 
     
 
     // FLYWHEEL
+    /*
     if (Controller1.ButtonUp.pressing()) {
       flywheelSpeed = 2500; // 
       motorSpeed = 340;
     } else if (Controller1.ButtonDown.pressing()) {
       flywheelSpeed = 2000; // 330
       motorSpeed = 260;
-    }
-
+    }*/
+    /*
     if (Controller1.ButtonL1.pressing() && !l1Prev) {
       flywheelSpeed = 1500; // 300
       motorSpeed = 210;
       if (!flyOn) {
         flyOn = true;
-      } else {/*
-        FlywheelDown.stop(coast);
-        FlywheelUp.stop(coast);
-        flyOn = false;*/
+      } else {
+       // FlywheelDown.stop(coast);
+       // FlywheelUp.stop(coast);
+      //  flyOn = false;
       }
-    }
+    }*/
+    
 
     if (flyOn) {
       double avgSpeed = (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2;
+      //printf("speed = %f\n", avgSpeed * 7);
       if (motorSpeed - avgSpeed > 20 || (fly.value() > 0.05 && fly.value() < recoverTime && fly.system() > 0.2)) {
         FlywheelDown.spin(forward, 11, volt);
         FlywheelUp.spin(forward, 11, volt);
@@ -137,7 +221,7 @@ void drive() {
       }
       intakingDisc = false;
     }
-    printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
+    //printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
     if (discCount >= 3 && sen.value() > 0.5) {
       discCount = discCount >= 0 ? discCount : 0;
       intRollOn = false;

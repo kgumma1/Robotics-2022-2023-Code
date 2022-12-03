@@ -17,6 +17,7 @@ double getInertialReading()
 //                         TURNING
 // ------------------------------------------------------- //
 vex::timer Timer3 = vex::timer();
+
 // spinbase
 void spinLeft(double speed)
 {
@@ -534,14 +535,18 @@ int queueDiscs(int n, double target = -1, double shotDelay = -1) {
 
 double kP = 0.00012;
 double kP2 = 0.0001;
+double kPEqui = 0.00003;
 double kI = 0;
 double kD = 0.005;
+double kDEqui = 0;
 
-void adjustFPID(double newkP = 0.00012, double newkP2 = 0.0001, double newkI = 0, double newkD = 0.005) {
+void adjustFPID(double newkP = 0.00012, double newkP2 = 0.0001, double newkI = 0, double newkD = 0.005, double newkPEqui = 0.00003, double newkDEqui = 0) {
   kP = newkP;
   kP2 = newkP2;
   kI = newkI;
   kD = newkD;
+  kPEqui = newkPEqui;
+  kDEqui = newkDEqui;
 }
 
 int flywheelPID() {
@@ -551,7 +556,7 @@ int flywheelPID() {
 
   double error = targetSpeed;
   double prevError = targetSpeed;
-  double output = 0;
+  double output = 12;
   double outputChange = 0;
   vex::timer shotTimer = vex::timer();
   int errorCount = 0;
@@ -567,13 +572,20 @@ int flywheelPID() {
     derivative = error - prevError;
     
     prevError = error;
-    
-    outputChange = error * (error > 0 ? kP : kP2) + integral * kI + derivative * kD;
+    if (fabs(error) > 100) {
+      outputChange = error * (error > 0 ? kP : kP2) + integral * kI + derivative * kD;  
+
+    } else {
+      outputChange = error * kPEqui + integral * kI + derivative * kDEqui; 
+ 
+    }
+
   
     output = output + outputChange >= 12 ? 12 : output + outputChange;
     FlywheelUp.spin(fwd, output, volt);
     FlywheelDown.spin(fwd, output, volt);
-    if (fabs(error) < 100) {
+
+    if (fabs(error) < 50) {
       errorCount++;
     } else {
       errorCount = 0;
@@ -647,16 +659,45 @@ void Fly(int targetSpeed = 2250, int motorSpeed = 210, int Shots = 2, double wai
 
 }
 
-int intakeNum() {
+int intake1() {
   Intake_Roller.spin(reverse, 100, pct); 
-  for (int i = 0; i < 3; i++) {
+
+  while (IntakeSensor.reflectivity() < intakeSensorInit + 4) {
+    wait(5, msec);
+  }
+  wait(50, msec);
+  Intake_Roller.stop(coast);
+  return 1;
+}
+int count = 0;
+
+int shootDisc() {
+  Indexer.set(true);
+  wait(300, msec);
+  Indexer.set(false);
+  wait(300, msec);
+  count--;
+  return 1;
+}
+
+vex::task shoot = vex::task(shootDisc);
+
+int intake3() {
+  Intake_Roller.spin(reverse, 100, pct); 
+
+  while (true) {
     while (IntakeSensor.reflectivity() < intakeSensorInit + 4) {
       wait(5, msec);
     }
     while (IntakeSensor.reflectivity() >= intakeSensorInit + 4) {
       wait(5, msec);
     }
+    count++;
+    if (count > 3) {
+      shoot.resume();
+    }
   }
-  Intake_Roller.spin(forward, 100, pct); 
+  
+
   return 1;
 }

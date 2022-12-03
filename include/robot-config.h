@@ -22,6 +22,14 @@ extern line IntakeSensor;
 extern encoder rightEncoder;
 extern encoder leftEncoder;
 extern encoder backEncoder;
+extern vex::vision::signature Vision__SIG_1;
+extern vex::vision::signature Vision__SIG_2;
+extern vex::vision::signature Vision__SIG_3;
+extern vex::vision::signature Vision__SIG_4;
+extern vex::vision::signature Vision__SIG_5;
+extern vex::vision::signature Vision__SIG_6;
+extern vex::vision::signature Vision__SIG_7;
+extern vision Vision;
 
 extern double intakeSensorInit;
 extern double Al, Ar, As, rs, xPos1, yPos1;

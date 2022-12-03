@@ -174,8 +174,9 @@ void autonomous(void) {
   Indexer.set(true);
   wait(300, msec);
   Indexer.set(false);*/
-  matchCloseSide();
+  matchWP3();
   //testing();
+  //matchFarRoller();
   /*
   driveFwdPID(25, false);
   BLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
@@ -262,6 +263,7 @@ void autonomous(void) {
 
 void usercontrol(void) {
   // User control code here, inside the loop
+  //testing();
   drive();
 }
 
