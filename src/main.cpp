@@ -174,7 +174,9 @@ void autonomous(void) {
   Indexer.set(true);
   wait(300, msec);
   Indexer.set(false);*/
-  matchWP3();
+  //matchWP3();
+  //skills();
+  halfWP();
   //testing();
   //matchFarRoller();
   /*

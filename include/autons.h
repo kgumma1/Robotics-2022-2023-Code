@@ -3,7 +3,131 @@
 
 using namespace vex;
 
+void lowGoal() {
+  resetDiscCount();
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.0001, 0);
+  queueDiscs(0, 1800, 0.4);
+
+  // first roller
+  spinLeft(15);
+  spinRight(15);
+  wait(400, msec);
+  Intake_Roller.spinFor(0.25, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(500, msec);
+
+
+}
+void halfWP() {
+ // flywheel setup
+  resetDiscCount();
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.0001, 0);
+  queueDiscs(0, 2500, 0.4);
+
+  // first roller
+  spinLeft(15);
+  spinRight(15);
+  wait(400, msec);
+  Intake_Roller.spinFor(0.25, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(500, msec);
+
+ 
+  drivePID(-3);
+
+  Turn(-131, 100);
+  vex::task intake = vex::task(intake1);
+
+  drivePID(66, 11);
+  wait(400, msec);
+  intake.stop();
+  Intake_Roller.spinFor(forward, 0.25, rev, 100, velocityUnits::pct);
+  Turn(-43, 100);
+  wait(200, msec);
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(3, 2500, 0.4);
+  vex::timer t = vex::timer();
+  t.reset();
+  while (numQueued() > 0 && t.value() < 3.2) {
+    wait(10, msec);
+  }
+  flywheelOn.stop();
+  Turn(0, 100);
+  drivePID(30);
+
+}
+
 void skills() {
+  // flywheel setup
+  resetDiscCount();
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.0001, 0);
+  queueDiscs(0, 2300, 0.4);
+
+  // first roller
+  spinLeft(15);
+  spinRight(15);
+  wait(400, msec);
+  Intake_Roller.spinFor(0.75, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(500, msec);
+
+ 
+  drivePID(-4);
+
+  Turn(-131, 100);
+  vex::task intake = vex::task(intake1);
+
+  drivePID(66, 11);
+  wait(500, msec);
+  intake.stop();
+  Intake_Roller.spinFor(forward, 0.25, rev, 100, velocityUnits::pct);
+  Turn(-43, 100);
+  wait(200, msec);
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(3, 2300, 0.4);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  flywheelOn.stop();
+  FlywheelUp.spin(forward, 4, volt);
+  FlywheelDown.spin(forward, 4, volt);
+
+  vex::task intake2 = vex::task(intake3);
+  wait(200, msec);
+  Turn(-133, 100);
+  intake.resume();
+  drivePID(68, 11);
+  FlywheelUp.stop(coast);
+  FlywheelDown.stop(coast);
+  intake2.stop();
+  spinLeft(30);
+  FRDrive.stop(hold);
+  BRDrive.stop(hold);
+  while (getInertialReading() < -110) {
+      wait(10, msec);
+  }
+  stopBase(hold);
+  spinLeft(20);
+  spinRight(20);
+  Indexer.set(false);
+
+  Intake_Roller.stop(coast);
+  wait(2000, msec);
+
+  Intake_Roller.spinFor(0.75, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(5, sec);
+  FlywheelUp.stop(brake);
+  FlywheelDown.stop(brake);
+  drivePID(-5);
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(5);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  Turn(-130, 100);
+  StringShooters.set(true);
+  wait(10, sec);
+  
 
 }
 
@@ -46,12 +170,12 @@ void matchWP3() {
   wait(200, msec);
   Intake_Roller.spin(reverse, 100, pct);
   queueDiscs(3, 2300, 0.4);
-  while (numQueued() > 0) {
+  vex::timer t = vex::timer();
+  t.reset();
+  while (numQueued() > 0 && t.time() < 3.5) {
     wait(10, msec);
   }
   flywheelOn.stop();
-  FlywheelUp.spin(forward, 4, volt);
-  FlywheelDown.spin(forward, 4, volt);
 
   vex::task intake2 = vex::task(intake3);
   wait(200, msec);

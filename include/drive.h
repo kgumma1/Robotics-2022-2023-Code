@@ -98,8 +98,8 @@ void drive() {
   double waitTime = 0.17;
   double recoverTime = 0.25;
 
-    flywheelSpeed = 1800; // 300y
-    motorSpeed = 170;
+    flywheelSpeed = 1700; // 300y
+    motorSpeed = 160;
 
   Puncher.setStopping(hold);
   
@@ -155,6 +155,13 @@ void drive() {
       BLDrive.spin(forward, outputL, pct);
       FRDrive.spin(forward, outputR, pct);
       BRDrive.spin(forward, outputR, pct);
+    }
+
+    if (Controller1.ButtonDown.pressing()) {
+      flyOn = true;
+      flywheelSpeed = 1600; // 300y
+       motorSpeed = 150;
+
     }
 
     
@@ -222,7 +229,7 @@ void drive() {
       intakingDisc = false;
     }
     //printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
-    if (discCount >= 3 && sen.value() > 0.5) {
+    if (discCount >= 3 && sen.value() > 0.25) {
       discCount = discCount >= 0 ? discCount : 0;
       intRollOn = false;
       intRollSpeed = 0;
