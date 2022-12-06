@@ -228,11 +228,11 @@ void drive() {
       }
       intakingDisc = false;
     }
-    //printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
-    if (discCount >= 3 && sen.value() > 0.25) {
+    printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
+    if (discCount >= 3 && sen.value() > 0) {
       discCount = discCount >= 0 ? discCount : 0;
-      intRollOn = false;
-      intRollSpeed = 0;
+      intRollOn = true;
+      intRollSpeed = 100;
     }
 
     if (Controller1.ButtonR1.pressing() && !r1Prev) {
@@ -275,6 +275,9 @@ void drive() {
           if (Indexer.value() == false) {
             discCount--;
             discCount = discCount >= 0 ? discCount : 0;
+            if (discCount < 3) {
+              intRollSpeed = -100;
+            }
           }
           fly.reset();
         }
