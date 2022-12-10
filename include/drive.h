@@ -92,14 +92,14 @@ void drive() {
   int discCount = 0;
   bool intakingDisc = false;
 
-  int flywheelSpeed = 600;
-  int motorSpeed = 0;
+  int flywheelSpeed = 2000; // 300y;
+  int motorSpeed = 240;
 
   double waitTime = 0.17;
-  double recoverTime = 0.25;
+  double recoverTime = 0.17;
 
-    flywheelSpeed = 1700; // 300y
-    motorSpeed = 160;
+    //flywheelSpeed = 2000; // 300y
+   // motorSpeed = 160;
 
   Puncher.setStopping(hold);
   
@@ -144,8 +144,8 @@ void drive() {
       double sensInc = -0.0001;
 
 
-      double Axis3Adjusted = Controller1.Axis3.position();
-      double Axis1Adjusted = Controller1.Axis1.position() * 0.75;
+      double Axis3Adjusted = fabs(Controller1.Axis3.position()) > 5 ? Controller1.Axis3.position() : 0;
+      double Axis1Adjusted = fabs(Controller1.Axis1.position() * 0.75) > 5 ? Controller1.Axis1.position() * 0.75 : 0;
 
 
       double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
@@ -159,8 +159,8 @@ void drive() {
 
     if (Controller1.ButtonDown.pressing()) {
       flyOn = true;
-      flywheelSpeed = 1600; // 300y
-       motorSpeed = 150;
+      //flywheelSpeed = 1600; // 300y
+       //motorSpeed = 150;
 
     }
 
@@ -232,7 +232,7 @@ void drive() {
     if (discCount >= 3 && sen.value() > 0) {
       discCount = discCount >= 0 ? discCount : 0;
       intRollOn = true;
-      intRollSpeed = 100;
+      intRollSpeed = 20;
     }
 
     if (Controller1.ButtonR1.pressing() && !r1Prev) {

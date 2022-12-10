@@ -570,9 +570,10 @@ int flywheelPID() {
     //integral = integral + error;
     
     derivative = error - prevError;
-    
+ 
     prevError = error;
-    if (fabs(error) > 100) {
+
+    if (fabs(error) > 200) {
       outputChange = error * (error > 0 ? kP : kP2) + integral * kI + derivative * kD;  
 
     } else {
@@ -582,6 +583,7 @@ int flywheelPID() {
 
   
     output = output + outputChange >= 12 ? 12 : output + outputChange;
+    //output = 7.2;
     FlywheelUp.spin(fwd, output, volt);
     FlywheelDown.spin(fwd, output, volt);
 
@@ -590,9 +592,10 @@ int flywheelPID() {
     } else {
       errorCount = 0;
     }
-    if (errorCount >= 5 && /*fabs(derivative) < 20 &&*/ Indexer.value() == false && shotTimer.value() > shotD && discCount > 0) {
+    if (errorCount >= 2 && /*fabs(derivative) < 20 &&*/ Indexer.value() == false && shotTimer.value() > shotD && discCount > 0) {
       Indexer.set(true);
       discCount--;
+      errorCount = 0;
       shotTimer.reset();
       printf("---------------shoots----------------%llu\n", 111111111111111111);
     }
@@ -600,7 +603,7 @@ int flywheelPID() {
       Indexer.set(false);
       shotTimer.reset();
     }
-    printf("error=%f outputChange=%f output=%f speed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, derivative);
+    printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
     wait(10, msec);
   } while (true);
   return 1;
@@ -684,8 +687,8 @@ vex::task shoot = vex::task(shootDisc);
 
 int intake3() {
   Intake_Roller.spin(reverse, 100, pct); 
-
-  while (true) {
+  count = 0;
+  while (count < 3) {
     while (IntakeSensor.reflectivity() < intakeSensorInit + 4) {
       wait(5, msec);
     }
@@ -693,10 +696,12 @@ int intake3() {
       wait(5, msec);
     }
     count++;
-    if (count > 3) {
+    /*if (count > 3) {
       shoot.resume();
-    }
+    }*/
   }
+  wait(200, msec);
+  Intake_Roller.spin(forward, 100, pct);
   
 
   return 1;

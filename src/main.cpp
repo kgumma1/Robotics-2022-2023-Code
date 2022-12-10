@@ -130,6 +130,7 @@ void calibrateIntertial()
 
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
+  rotSensor.resetPosition();
   vexcodeInit();
   calibrateIntakeSensor();
   calibrateIntertial();
@@ -154,96 +155,12 @@ void autonomous(void) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-  int i = 0;
-  Brain.Screen.print(i+1);
-  // driveBasic(2000, 60);
-  // Brain.Screen.print(i+1);
-  // Turn(50, 60);
-  // Brain.Screen.print(i+1);
-  // driveFwdPID(24); // inches
-  // inertTurnDegPID(90, 0.25); // target & kp
-  /*while ((FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 < 350)  {
-    FlywheelDown.spin(forward, 3400.0 / 7 / 50, volt);
-    FlywheelUp.spin(forward, 3400.0 / 7 / 50, volt);
-  }
-  wait(1500, msec);
-  Indexer.set(true);
-  wait(300, msec);
-  Indexer.set(false);
-  wait(1800, msec);
-  Indexer.set(true);
-  wait(300, msec);
-  Indexer.set(false);*/
   //matchWP3();
+  matchWP5();
   //skills();
-  halfWP();
+  ////halfWP();
   //testing();
   //matchFarRoller();
-  /*
-  driveFwdPID(25, false);
-  BLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
-  FLDrive.spinFor(forward, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
-  BRDrive.spinFor(reverse, 110, rotationUnits::deg, 50, velocityUnits::pct, false);
-  FRDrive.spinFor(reverse, 110, rotationUnits::deg, 50, velocityUnits::pct, true); 
-  StringShooters.set(true);
-  /*driveFwdPID(22, true);
-  spinLeft(5);
-  spinRight(5);
-  wait(1000, msec);
-  Intake_Roller.spinFor(0.5, rotationUnits::rev, 100, velocityUnits::pct);*/
-
-
-/*
-  
-  spinLeft(5);
-  spinRight(5);
-  wait(1000, msec);
-  Intake_Roller.spinFor(0.15, rotationUnits::rev, 100, velocityUnits::pct);
-  wait(100, msec);
-  stopBase();
-  driveFwdPID(3, false, 10);
-  stopBase();
-  /*BLDrive.spinFor(reverse, 30, rotationUnits::deg, 50, velocityUnits::pct, false);
-  FLDrive.spinFor(reverse, 30, rotationUnits::deg, 50, velocityUnits::pct, false);
-  BRDrive.spinFor(forward, 30, rotationUnits::deg, 50, velocityUnits::pct, false);
-  FRDrive.spinFor(forward, 30, rotationUnits::deg, 50, velocityUnits::pct, true);
-  Fly(3100, 400, 2, 0.30);*/
-  //driveFwdPID(5, false, 7);
-  /**//*
-  BLDrive.spinFor(reverse, 10, rotationUnits::deg, 50, velocityUnits::pct, false);
-  FLDrive.spinFor(reverse, 10, rotationUnits::deg, 50, velocityUnits::pct, false);
-  BRDrive.spinFor(forward, 10, rotationUnits::deg, 50, velocityUnits::pct, false);
-  FRDrive.spinFor(forward, 10, rotationUnits::deg, 50, velocityUnits::pct, true);
-  wait(0.5, sec);
-  inertTurnDegPID(233, 0.5, false);
-  //vex::task t = vex::task(intakeNum);
-  Intake_Roller.spin(forward, 100, pct);
-  driveFwdPID(134);
-  inertTurnDegPID(270, 0.5, true);
-  spinLeft(15);
-  spinRight(15);
-  wait(2, sec);
-  Intake_Roller.spinFor(0.15, rotationUnits::rev, 100, velocityUnits::pct);*/
-
-  /*
-  spinLeftBack(10);
-  spinRightBack(10);
-  wait(500, msec);
-  inertTurnDegPID(270, 0.25);
-  Intake_Roller.spinFor(10, rotationUnits::rev, 100, velocityUnits::pct, false);
-  driveFwdPID(46);
-  inertTurnDegPID(45, 0.25);
-  Intake_Roller.stop(coast);
-  Fly(2000, 380, 3, 0.3);
-  inertTurnDegPID(270, 0.25);
-  Intake_Roller.spinFor(10, rotationUnits::rev, 100, velocityUnits::pct, false);
-  driveFwdPID(30);
-  inertTurnDegPID(90, 0.25);
-  driveFwdPID(30);
-  inertTurnDegPID(180, 0.25);
-  Intake_Roller.spinFor(10, rotationUnits::rev, 100, velocityUnits::pct, false);
-  driveFwdPID(20);
-  Fly(3000, 380, 3, 0.3);*/
 
 
 }

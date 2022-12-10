@@ -19,6 +19,7 @@ extern triport Expander;
 extern digital_out StringShooters;
 extern digital_out angleChanger;
 extern line IntakeSensor;
+extern rotation rotSensor;
 extern encoder rightEncoder;
 extern encoder leftEncoder;
 extern encoder backEncoder;

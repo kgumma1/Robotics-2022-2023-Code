@@ -27,6 +27,7 @@ line IntakeSensor = line(Expander.B);
 encoder rightEncoder = encoder(Brain.ThreeWirePort.E);
 encoder leftEncoder = encoder(Brain.ThreeWirePort.C);
 encoder backEncoder = encoder(Brain.ThreeWirePort.G);
+rotation rotSensor = rotation(PORT13);
 signature Vision__SIG_1 = signature (1, 2321, 8611, 5466, -351, 819, 234, 1.1, 0);
 signature Vision__SIG_2 = signature (2, -2299, -321, -1310, 1505, 8977, 5241, 0.7, 0);
 signature Vision__SIG_3 = signature (3, 0, 0, 0, 0, 0, 0, 3, 0);
