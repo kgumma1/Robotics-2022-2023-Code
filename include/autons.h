@@ -12,6 +12,8 @@ int displayTime() {
     wait(100, msec);
     Brain.Screen.clearScreen();
   }
+  Brain.Screen.setPenColor(red);
+  Brain.Screen.printAt(5, 50, "Time Left=%f", 0.0);
   Controller1.rumble("----");
   return 1;
 }
@@ -145,15 +147,76 @@ void skills() {
 }
 
 void matchFarRoller() {
-  drivePID(-12);
-  drivePID(57, 9);
-  Turn(90, 80);
-  spinLeft(15);
-  spinRight(15);
-  wait(2000, msec);
-  Intake_Roller.spinFor(0.3, rotationUnits::rev, 100, velocityUnits::pct, true);
+  runTime.reset();
+  vex::task keepTime = vex::task(displayTime);
+  // flywheel setup
+
+  resetDiscCount();
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00007, 0.00005, 0, 0.004, 0.00001, 0);
+  queueDiscs(0, 2500, 0.25);
+  changeCount(2);
+  vex::task intake1 = vex::task(intake3);
+  drivePID(31);
+  wait(100, msec);
+  drivePID(-8);
+  Turn(90, 100);
+  intake1.stop();
+  Intake_Roller.stop(coast);
+  spinLeft(30);
+  spinRight(30);
+  wait(400, msec);
+  Intake_Roller.spinFor(0.3, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(500, msec);
+  drivePID(-3);
+  Turn(93, 100);
+
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(3, 2500, 0.25);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+
+  wait(100, msec);
+  queueDiscs(0, 2300, 0.25);
+  vex::task intake2 = vex::task(intake3);
+
+  Turn(-142, 100);
+  drivePID(65);
+  Turn(127, 100);
+  wait(100, msec);
+  intake2.stop();
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(3, 2300, 0.25);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  wait(100, msec);
+  vex::task intake_3 = vex::task(intake3);
+  Turn(120, 100);
+  drivePID(40, 9);
+  drivePID(-40);
+  Turn(124, 100);
+  intake_3.stop();
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(3, 2300, 0.25);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+
+  
+
+
+
+
+
+
+
+
+
 
 }
+
 
 void matchWP3() {
   // flywheel setup
@@ -244,21 +307,21 @@ void matchWP5() {
     wait(10, msec);
   }
   wait(200, msec);
-  queueDiscs(0, 2300, 0.3);
-  drivePID(2);
+  queueDiscs(0, 2300, 0.35);
+  drivePID(2.5);
   Turn(-133, 100);
   vex::task intake = vex::task(intake3);
 
   drivePID(66, 11);
-  Turn(-45, 100);
+  Turn(-47, 100);
   wait(100, msec);
-  queueDiscs(3, 2300, 0.3);
+  queueDiscs(3, 2300, 0.35);
   while (numQueued() > 0) {
     wait(10, msec);
   }
   intake.stop();
   vex::task intake2 = vex::task(intake3);
-  wait(200, msec);
+  wait(100, msec);
   queueDiscs(0, 2500, 0.3);
   Turn(-132, 100);
   drivePID(67, 12);
@@ -306,11 +369,11 @@ void testing() {
   resetDiscCount();
   vex::task flywheelOn = vex::task(flywheelPID);
   adjustFPID(0.00007, 0.00005, 0, 0.004, 0.00001, 0);
-  queueDiscs(0, 2700, 0.4); // 2300
+  queueDiscs(0, 2300, 0.35); // 2300
   Intake_Roller.spin(reverse, 100, pct);
-  wait(4, sec);
+  wait(5, sec);
   while (true) {
-    queueDiscs(3, 2500, 0.4); // 2300
+    queueDiscs(3, 2300, 0.35); // 2300
     while (numQueued() > 0) {
       wait(10, msec);
     }

@@ -191,7 +191,7 @@ void Turn(double destination, double speed, double timeOut=5) {
     FLDrive.spin(fwd, speedL, volt);
     BLDrive.spin(fwd, speedL, volt);
     wait(10, msec);
-    printf("turnamount=%f curAngle=%f error=%f output=%f int=%f deriv=%f PIDcalculated=%f \n\n",turnAmount, curAngle, error, output, intError, derivError, PIDspeed);
+    //printf("turnamount=%f curAngle=%f error=%f output=%f int=%f deriv=%f PIDcalculated=%f \n\n",turnAmount, curAngle, error, output, intError, derivError, PIDspeed);
 
     
     if(((curAngle>turnAmount-threshold && turnAmount>0) || (curAngle<turnAmount+threshold && turnAmount<0)) && !triggered)
@@ -335,7 +335,7 @@ void drivePID(double dist, double maxSpeed = 12, double timeOut = 10) {
     powers[0] = kP * error[0] + kI * integral[0] + kD * derivative[0];
     powers[1] = kP * error[1] + kI * integral[1] + kD * derivative[1];
 
-    printf("______________________________pRight=%f pLeft=%f\n", powers[0], powers[1]);
+    //printf("______________________________pRight=%f pLeft=%f\n", powers[0], powers[1]);
 
     if (fabs(powers[0]) > maxSpeed) {
       if (powers[0] > 0) {
@@ -352,7 +352,7 @@ void drivePID(double dist, double maxSpeed = 12, double timeOut = 10) {
       }
     }
 
-    printf("pRight=%f pLeft=%f____________________________\n", powers[0], powers[1]);
+    //printf("pRight=%f pLeft=%f____________________________\n", powers[0], powers[1]);
 
     FRDrive.spin(fwd, powers[0], volt);
     BRDrive.spin(fwd, powers[0], volt);
@@ -673,7 +673,9 @@ int intake1() {
   return 1;
 }
 int count = 0;
-
+void changeCount(int n) {
+  count = n;
+}
 int shootDisc() {
   Indexer.set(true);
   wait(300, msec);

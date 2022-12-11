@@ -72,7 +72,12 @@ int autoAimMacro() {
 
 }
 
+double expFunction(double d) {
+  double a = 3;
+  return (1 / pow(100, a-1)) * pow(d, a);
+}
 
+bool skillsMode = true;
 void drive() {
     // User control code here, inside the loop
 
@@ -92,8 +97,8 @@ void drive() {
   int discCount = 0;
   bool intakingDisc = false;
 
-  int flywheelSpeed = 2000; // 300y;
-  int motorSpeed = 240;
+  int flywheelSpeed = 1850; // 300y;
+  int motorSpeed = 225;
 
   double waitTime = 0.17;
   double recoverTime = 0.17;
@@ -145,7 +150,7 @@ void drive() {
 
 
       double Axis3Adjusted = fabs(Controller1.Axis3.position()) > 5 ? Controller1.Axis3.position() : 0;
-      double Axis1Adjusted = fabs(Controller1.Axis1.position() * 0.75) > 5 ? Controller1.Axis1.position() * 0.75 : 0;
+      double Axis1Adjusted = fabs(Controller1.Axis1.position()) > 5 ? expFunction(Controller1.Axis1.position()) : 0;
 
 
       double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
@@ -229,10 +234,10 @@ void drive() {
       intakingDisc = false;
     }
     printf("Sensor = %ld : Init = %f : discCount %d\n", IntakeSensor.reflectivity(), intakeSensorInit, discCount);
-    if (discCount >= 3 && sen.value() > 0) {
+    if (discCount >= 3 && sen.value() > (skillsMode ? 0.25 : 0)) {
       discCount = discCount >= 0 ? discCount : 0;
       intRollOn = true;
-      intRollSpeed = 20;
+      intRollSpeed = skillsMode ? 100 : 20;
     }
 
     if (Controller1.ButtonR1.pressing() && !r1Prev) {
