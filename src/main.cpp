@@ -89,6 +89,7 @@ competition Competition;
 
 // define your global instances of motors and other devices here
 double intakeSensorInit;
+double bottomIntakeSensorInit;
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous FunController1ions                         */
 /*                                                                           */
@@ -106,9 +107,11 @@ void calibrateIntakeSensor() {
   wait(1, sec);
   for (int i = 0; i < 10; i++) {
     intakeSensorInit += IntakeSensor.reflectivity();
+    bottomIntakeSensorInit += BottomIntakeSensor.reflectivity();
     wait(20, msec);
   }
   intakeSensorInit /= 10.0;
+  bottomIntakeSensorInit /= 10.0;
 }
 
 void calibrateIntertial()
@@ -157,9 +160,9 @@ void autonomous(void) {
   // ..........................................................................
   //matchWP3();
   //matchWP5();
-  matchFarRoller();
-  //skills();
-  ////halfWP();
+  //matchFarRoller();
+  skills();
+  //halfWP();
   //testing();
   //matchFarRoller();
 

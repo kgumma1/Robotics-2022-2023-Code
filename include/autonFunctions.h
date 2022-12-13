@@ -285,7 +285,7 @@ void driveFwdPID(double dist, bool forwards = true, double kP = 4.5) {
 
 }
 
-void drivePID(double dist, double maxSpeed = 12, double timeOut = 10) {
+int drivePID(double dist = 5, double maxSpeed = 12, double timeOut = 10) {
   double error[2];
   double prevError[2];
   double powers[2];
@@ -305,8 +305,9 @@ void drivePID(double dist, double maxSpeed = 12, double timeOut = 10) {
   integral[1] = 0;
 
   vex::timer exitTimer = vex::timer();
-
+    exitTimer.reset();
   do {
+
     error[0] = ((dist / (3.25 * PI)) * 360) - rightEncoder.position(deg);
     error[1] = ((dist / (3.25 * PI)) * 360) - leftEncoder.position(deg);
 
@@ -365,6 +366,7 @@ void drivePID(double dist, double maxSpeed = 12, double timeOut = 10) {
 
   } while ((fabs(error[0]) > 10 && fabs(error[1]) > 10) && exitTimer.value() < timeOut);
   stopBase(hold);
+  return 1;
 }
 
 void inertTurnDegPID(double targetValue, double kP, bool clockwise = true)
@@ -603,7 +605,7 @@ int flywheelPID() {
       Indexer.set(false);
       shotTimer.reset();
     }
-    printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
+    //rintf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
     wait(10, msec);
   } while (true);
   return 1;
@@ -673,8 +675,12 @@ int intake1() {
   return 1;
 }
 int count = 0;
+int outtakeSpeed = 100;
 void changeCount(int n) {
-  count = n;
+  count = n >= 0 ? n : 0;
+}
+void changeOuttake(int n) {
+  outtakeSpeed = n;
 }
 int shootDisc() {
   Indexer.set(true);
@@ -686,6 +692,37 @@ int shootDisc() {
 }
 
 vex::task shoot = vex::task(shootDisc);
+
+int countDiscs() {
+  while(true){
+    while (IntakeSensor.reflectivity() < intakeSensorInit + 4) {
+      wait(10, msec);
+    }
+   
+    while (IntakeSensor.reflectivity() >= intakeSensorInit + 4) {
+      wait(10, msec);
+    }
+    count++;
+    /*if (count > 3) {
+      shoot.resume();
+    }*/
+    }
+}
+
+int maintain3() {
+  while (true) {
+    if (count >= 3 && BottomIntakeSensor.reflectivity() >= bottomIntakeSensorInit + 4) {
+      Intake_Roller.spin(forward, 100, pct);
+    } else if (count <= 3) {
+      Intake_Roller.spin(reverse, 100, pct);
+    } else {
+      Intake_Roller.stop(coast);
+    }
+    //printf("count = %d\n", count);
+    wait(10, msec);
+
+  }
+}
 
 int intake3() {
   Intake_Roller.spin(reverse, 100, pct); 
@@ -703,7 +740,7 @@ int intake3() {
     }*/
   }
   wait(200, msec);
-  Intake_Roller.spin(forward, 100, pct);
+  Intake_Roller.spin(forward, outtakeSpeed, pct);
   
 
   return 1;

@@ -19,6 +19,7 @@ extern triport Expander;
 extern digital_out StringShooters;
 extern digital_out angleChanger;
 extern line IntakeSensor;
+extern line BottomIntakeSensor;
 extern rotation rotSensor;
 extern encoder rightEncoder;
 extern encoder leftEncoder;
@@ -33,6 +34,7 @@ extern vex::vision::signature Vision__SIG_7;
 extern vision Vision;
 
 extern double intakeSensorInit;
+extern double bottomIntakeSensorInit;
 extern double Al, Ar, As, rs, xPos1, yPos1;
 
 

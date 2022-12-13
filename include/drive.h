@@ -111,6 +111,8 @@ void drive() {
   
   angleChanger.set(true);
 
+  task::stopAll();
+
   vex::timer exp = vex::timer();
   vex::timer fly = vex::timer();
   vex::timer ind = vex::timer();

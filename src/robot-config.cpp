@@ -24,6 +24,7 @@ digital_out Indexer = digital_out(Brain.ThreeWirePort.B);
 digital_out StringShooters = digital_out(Expander.A);
 digital_out angleChanger = digital_out(Expander.G);
 line IntakeSensor = line(Expander.B);
+line BottomIntakeSensor = line(Expander.H);
 encoder rightEncoder = encoder(Brain.ThreeWirePort.E);
 encoder leftEncoder = encoder(Brain.ThreeWirePort.C);
 encoder backEncoder = encoder(Brain.ThreeWirePort.G);
