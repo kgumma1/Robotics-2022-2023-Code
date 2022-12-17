@@ -73,8 +73,8 @@ int autoAimMacro() {
 }
 
 double expFunction(double d) {
-  double a = 3;
-  return (1 / pow(100, a-1)) * pow(d, a);
+  double a = 4;
+  return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
 bool skillsMode = true;
@@ -111,7 +111,7 @@ void drive() {
   
   angleChanger.set(true);
 
-  task::stopAll();
+  //task::stopAll();
 
   vex::timer exp = vex::timer();
   vex::timer fly = vex::timer();

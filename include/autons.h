@@ -20,6 +20,15 @@ int displayTime() {
   return 1;
 }
 
+int fireExpansion() {
+  while (true) {
+    if (matchTime - runTime.value() < 0.15) {
+      StringShooters.set(true);
+    }
+    wait(10, msec);
+  }
+}
+
 void lowGoal() {
   resetDiscCount();
   vex::task flywheelOn = vex::task(flywheelPID);
@@ -89,15 +98,15 @@ void skills() {
   angleChanger.set(true);
 
   // preloads
-  queueDiscs(0, 1900, 0.25);
+  queueDiscs(0, 1900, 0.20);
   Turn(5, 100);
-  queueDiscs(2, 1900, 0.25);
+  queueDiscs(2);
   while (numQueued() > 0) {
     wait(10, msec);
   }
   wait(100, msec);
   angleChanger.set(false);
-  queueDiscs(0, 2000, 0.25);
+  queueDiscs(0, 2000, 0.20, 0.7);
 
   // move to/intake first line
   Turn(-32, 100);
@@ -111,7 +120,7 @@ void skills() {
   wait(200, msec);
 
   // shoot first line
-  queueDiscs(3, 2000, 0.25);
+  queueDiscs(3);
   while(numQueued() > 0){
     wait(10, msec);
     changeCount(numQueued());
@@ -136,26 +145,40 @@ void skills() {
   }
   changeCount(0);
   wait(100, msec);
-  queueDiscs(0, 2400, 0.25);
+  queueDiscs(0, 2000, 0.1);
 
   // move to / intake center 3-stack
-  Turn(-91, 100);
+  Turn(-92, 100);
   drivePID(32, 8);
-  drivePID(16, 5, 5);
+  drivePID(14, 5, 5);
 
   // roller 1 manip
   wait(150, msec);
-  spinBase(30, 30);
+  spinBase(100, 100);
   intake.suspend();
   Intake_Roller.stop(coast);
   wait(500, msec);
 
-  Intake_Roller.spinFor(-0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
-  wait(1500, msec);
+  Intake_Roller.spinFor(0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(1000, msec);
+
+  drivePID(-1);
+
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
+
+  wait(200, msec);
+
+  Intake_Roller.spinFor(0.2, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(300, msec);
+
   drivePID(-18);
   Turn(-180, 100);
 
   // shoot excess disc
+  
   wait(100, msec);
   queueDiscs(1);
   while(numQueued() > 0){
@@ -163,24 +186,36 @@ void skills() {
   }
   changeCount(2);
   wait(100, msec);
-
+  
   // intake excess disc + roller 2 manip
-  queueDiscs(0, 2200, 0.25);
-  intake.resume();
-  drivePID(20, 8);
+  queueDiscs(0, 2200, 0.25, 0.7);
+  intake.resume(); //-- excess disc
+  drivePID(19, 8);
   wait(150, msec);
-  FLDrive.spin(forward, 6, volt);
-  FRDrive.spin(forward, 6, volt);
-  BRDrive.spin(forward, 6, volt);
-  BLDrive.spin(forward, 6, volt);
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
   intake.suspend();
   Intake_Roller.stop(coast);
   wait(500, msec);
 
-  Intake_Roller.spinFor(-0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
-  wait(1500, msec);
+  Intake_Roller.spinFor(0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(1000, msec);
 
   // align and move to shoot center 3 stack
+  drivePID(-1);
+
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
+
+  wait(200, msec);
+
+  Intake_Roller.spinFor(0.2, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(300, msec);
+
   drivePID(-2);
   intake.resume();
   changeCount(3);
@@ -193,7 +228,7 @@ void skills() {
   }
   changeCount(0);
   wait(100, msec);
-  queueDiscs(0, 2000, 0.25);
+  queueDiscs(0, 2000, 0.20);
 
   // align/intake 2nd line
   Turn(48, 100);
@@ -208,14 +243,14 @@ void skills() {
     changeCount(numQueued());
   }
   changeCount(0);
-  wait(100, msec);
+  wait(200, msec);
 
   queueDiscs(0, 2070, 0.25);
 
   // intake opponent 3 stack
   Turn(49, 100);
-  drivePID(52, 6.5);
-  drivePID(-19);
+  drivePID(53, 6.5);
+  drivePID(-20);
   Turn(107, 100);
   wait(100, msec);
 
@@ -227,20 +262,33 @@ void skills() {
   }
   changeCount(0);
   wait(100, msec);
-  queueDiscs(0, 2400, 0.25);
+  queueDiscs(0, 2000, 0.25, 0.1);
 
   // intake center 3 stack #2 + roller 3 manip
-  Turn(88, 100);
+  Turn(87, 100);
   drivePID(32, 8);
-  drivePID(16, 5, 5);
+  drivePID(17, 5, 5);
   wait(150, msec);
-  spinBase(30, 30);
+  spinBase(100, 100);
   intake.suspend();
   Intake_Roller.stop(coast);
   wait(500, msec);
 
-  Intake_Roller.spinFor(-0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
-  wait(1500, msec);
+  Intake_Roller.spinFor(0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(1000, msec);
+    drivePID(-1);
+
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
+
+  wait(200, msec);
+
+  Intake_Roller.spinFor(0.2, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(300, msec);
+
+
   drivePID(-18);
   Turn(0, 100);
   wait(100, msec);
@@ -252,24 +300,36 @@ void skills() {
   }
   changeCount(2);
 
-  // roller manip + intake excess disc
+  // roller 4 manip + intake excess disc
   wait(100, msec);
-  queueDiscs(0, 2250, 0.25);
+  queueDiscs(0, 2300, 0.25, 0.7);
   intake.resume();
-  drivePID(20, 8);
+  drivePID(17, 8);
   wait(150, msec);
-  FLDrive.spin(forward, 6, volt);
-  FRDrive.spin(forward, 6, volt);
-  BRDrive.spin(forward, 6, volt);
-  BLDrive.spin(forward, 6, volt);
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
   intake.suspend();
   Intake_Roller.stop(coast);
   wait(500, msec);
 
-  Intake_Roller.spinFor(-0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
-  wait(1500, msec);
-  drivePID(-2);
+  Intake_Roller.spinFor(0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(1000, msec);
+  drivePID(-1);
 
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
+
+  wait(200, msec);
+
+  Intake_Roller.spinFor(0.2, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(300, msec);
+
+  drivePID(-2);
+  intake.resume();
   // align and shoot center 3 stack #2
   Turn(-4, 100);
   drivePID(-16);
@@ -279,14 +339,13 @@ void skills() {
     changeCount(numQueued());
   }
   changeCount(0);
-  intake.resume();
   wait(100, msec);
   queueDiscs(0, 2100, 0.25);
 
   // turn and intake center line
   Turn(-128, 100);
-  drivePID(70);
-  Turn(137, 100);
+  drivePID(72);
+  Turn(140, 100);
   wait(100, msec);
 
   // shoot center line
@@ -299,10 +358,11 @@ void skills() {
   wait(100, msec);
 
   // go to expand
-  Turn(-131, 100);
+  Turn(-129, 100);
   flywheelOn.stop();
   FlywheelDown.stop(brake);
   FlywheelUp.stop(brake);
+  vex::task backupExpTrigger = vex::task(fireExpansion);
   drivePID(60);
   StringShooters.set(true);
 
@@ -334,7 +394,7 @@ void matchFarRoller() {
   Intake_Roller.spinFor(0.3, rotationUnits::rev, 100, velocityUnits::pct, false);
   wait(500, msec);
   drivePID(-3);
-  Turn(93, 100);
+  Turn(96, 100);
 
   Intake_Roller.spin(reverse, 100, pct);
   queueDiscs(3, 2500, 0.25);
@@ -346,7 +406,7 @@ void matchFarRoller() {
   queueDiscs(0, 2300, 0.25);
   vex::task intake2 = vex::task(intake3);
 
-  Turn(-142, 100);
+  Turn(-140, 100);
   drivePID(65);
   Turn(127, 100);
   wait(100, msec);
@@ -463,7 +523,7 @@ void matchWP5() {
 
   // align to shoot
   drivePID(-4);
-  Turn(-10, 100);
+  Turn(-9, 100);
 
   // shoot
   wait(100, msec);
@@ -474,11 +534,11 @@ void matchWP5() {
   wait(200, msec);
   queueDiscs(0, 2300, 0.35);
   drivePID(2.5);
-  Turn(-133, 100);
+  Turn(-132, 100);
   vex::task intake = vex::task(intake3);
 
   drivePID(66, 11);
-  Turn(-47, 100);
+  Turn(-46, 100);
   wait(100, msec);
   queueDiscs(3, 2300, 0.35);
   while (numQueued() > 0) {
@@ -543,7 +603,7 @@ void testing() {
       wait(10, msec);
     }
     wait(10, sec);
-  }*/
+  }*//*
   resetDiscCount();
   vex::task flywheelOn = vex::task(flywheelPID);
   adjustFPID(0.00007, 0.00005, 0, 0.004, 0.00001, 0);
@@ -553,7 +613,31 @@ void testing() {
   while(numQueued() > 0){
     changeCount(numQueued());
     wait(10, msec);
-  }
+  }*/
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
+  Intake_Roller.stop(coast);
+  wait(500, msec);
+
+  Intake_Roller.spinFor(0.8, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(1500, msec);
+
+  // align and move to shoot center 3 stack
+  drivePID(-1);
+
+  FLDrive.spin(forward, 12, volt);
+  FRDrive.spin(forward, 12, volt);
+  BRDrive.spin(forward, 12, volt);
+  BLDrive.spin(forward, 12, volt);
+
+  wait(200, msec);
+
+  Intake_Roller.spinFor(0.2, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(300, msec);
+
+  drivePID(-2);
 
   wait(30, sec);
   printf("dsfakjdlkj:%d\n", 5);

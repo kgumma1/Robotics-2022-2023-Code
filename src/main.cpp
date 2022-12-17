@@ -159,9 +159,9 @@ void autonomous(void) {
   // Insert autonomous user code here.
   // ..........................................................................
   //matchWP3();
-  //matchWP5();
+  matchWP5();
   //matchFarRoller();
-  skills();
+  //skills();
   //halfWP();
   //testing();
   //matchFarRoller();
@@ -188,6 +188,7 @@ void usercontrol(void) {
   // User control code here, inside the loop
   //testing();
   drive();
+  //skills();
 }
 
 //
@@ -195,6 +196,7 @@ void usercontrol(void) {
 //
 int main() {
   // Set up callbacks for autonomous and driver control periods.
+  Competition.bStopAllTasksBetweenModes = true;
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
 

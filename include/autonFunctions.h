@@ -516,6 +516,7 @@ void DriveS(double amount, double speed, double timeOut = 10, bool fast = false)
 int discCount = 0;
 double targetSpeed = 0;
 double shotD = 0.2;
+double maxShotT = 60;
 
 
 void resetDiscCount() {
@@ -528,10 +529,11 @@ int numQueued() {
   return discCount;
 }
 
-int queueDiscs(int n, double target = -1, double shotDelay = -1) {
+int queueDiscs(int n, double target = -1, double shotDelay = -1, double maxShotTime = -1) {
   discCount += n;
   targetSpeed = target > 0 ? target : targetSpeed;
   shotD = shotDelay > 0 ? shotDelay : shotD;
+  maxShotT = maxShotTime > 0 ? maxShotTime : maxShotT;
   return discCount;
 }
 
@@ -594,7 +596,7 @@ int flywheelPID() {
     } else {
       errorCount = 0;
     }
-    if (errorCount >= 2 && /*fabs(derivative) < 20 &&*/ Indexer.value() == false && shotTimer.value() > shotD && discCount > 0) {
+    if (/*fabs(derivative) < 20 &&*/ Indexer.value() == false && ((errorCount >= 2 && shotTimer.value() > shotD) || shotTimer.value() > maxShotT) && discCount > 0) {
       Indexer.set(true);
       discCount--;
       errorCount = 0;
