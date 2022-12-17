@@ -113,7 +113,7 @@ void skills() {
 
   vex::task intake = vex::task(maintain3);
   drivePID(32.5);
-  Turn(-135, 100);
+  Turn(-136, 100);
 
   drivePID(35);
   Turn(-50, 100);
@@ -134,7 +134,7 @@ void skills() {
   Turn(-131, 100);
   drivePID(49, 6.5);
   drivePID(-19);
-  Turn(-77, 100);
+  Turn(-79, 100);
   wait(100, msec);
 
   // shoot alliance 3-stack
@@ -219,8 +219,8 @@ void skills() {
   drivePID(-2);
   intake.resume();
   changeCount(3);
-  Turn(177, 100);
-  drivePID(-35);
+  Turn(176, 100);
+  drivePID(-36);
   queueDiscs(3);
   while (numQueued() > 0) {
     wait(10, msec);
@@ -232,7 +232,7 @@ void skills() {
 
   // align/intake 2nd line
   Turn(48, 100);
-  drivePID(47);
+  drivePID(48);
   Turn(136, 100);
   wait(100, msec);
 
@@ -248,9 +248,9 @@ void skills() {
   queueDiscs(0, 2070, 0.25);
 
   // intake opponent 3 stack
-  Turn(49, 100);
+  Turn(48, 100);
   drivePID(53, 6.5);
-  drivePID(-20);
+  drivePID(-22);
   Turn(107, 100);
   wait(100, msec);
 
@@ -345,7 +345,7 @@ void skills() {
   // turn and intake center line
   Turn(-128, 100);
   drivePID(72);
-  Turn(140, 100);
+  Turn(141, 100);
   wait(100, msec);
 
   // shoot center line
@@ -523,7 +523,7 @@ void matchWP5() {
 
   // align to shoot
   drivePID(-4);
-  Turn(-9, 100);
+  Turn(-8, 100);
 
   // shoot
   wait(100, msec);
@@ -538,7 +538,7 @@ void matchWP5() {
   vex::task intake = vex::task(intake3);
 
   drivePID(66, 11);
-  Turn(-46, 100);
+  Turn(-44, 100);
   wait(100, msec);
   queueDiscs(3, 2300, 0.35);
   while (numQueued() > 0) {
@@ -566,7 +566,7 @@ void matchWP5() {
   stopBase(coast);
   drivePID(-2);
   Intake_Roller.spin(reverse, 100, pct);
-  Turn(-84, 100);
+  Turn(-83, 100);
   queueDiscs(3, 2500, 0.3);
   while(numQueued() > 0){
     wait(10, msec);
