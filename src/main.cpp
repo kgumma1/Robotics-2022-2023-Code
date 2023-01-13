@@ -1,57 +1,3 @@
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// FlywheelUp           motor         7               
-// FLDrive              motor         2               
-// Intake_Roller        motor         3               
-// BLDrive              motor         4               
-// FRDrive              motor         5               
-// BRDrive              motor         6               
-// FlywheelDown         motor         1               
-// Controller1          controller                    
-// Puncher              motor         20              
-// inertialSensor       inertial      12              
-// trans                digital_out   A               
-// Indexer              digital_out   B               
-// Expander             triport       15              
-// StringShooters       digital_out   A               
-// IntakeSensor         line          H               
-// ---- END VEXCODE CONFIGURED DEVICES ----
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// FlywheelUp           motor         7               
-// FLDrive              motor         2               
-// Intake_Roller        motor         3               
-// BLDrive              motor         4               
-// FRDrive              motor         5               
-// BRDrive              motor         6               
-// FlywheelDown         motor         1               
-// Controller1          controller                    
-// Puncher              motor         20              
-// inertialSensor       inertial      12              
-// trans                digital_out   A               
-// Indexer              digital_out   B               
-// Expander             triport       15              
-// StringShooters       digital_out   A               
-// ---- END VEXCODE CONFIGURED DEVICES ----
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// FlywheelUp           motor         7               
-// FLDrive              motor         2               
-// Intake_Roller        motor         3               
-// BLDrive              motor         4               
-// FRDrive              motor         5               
-// BRDrive              motor         6               
-// FlywheelDown         motor         1               
-// Controller1          controller                    
-// Puncher              motor         20              
-// inertialSensor       inertial      12              
-// trans                digital_out   A               
-// Indexer              digital_out   B               
-// Expander             triport       15              
-// ---- END VEXCODE CONFIGURED DEVICES ----
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
@@ -62,20 +8,6 @@
 /*----------------------------------------------------------------------------*/
 
 // ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// FlywheelUp           motor         7               
-// FLDrive              motor         2               
-// Intake_Roller        motor         3               
-// BLDrive              motor         4               
-// FRDrive              motor         5               
-// BRDrive              motor         6               
-// FlywheelDown         motor         1               
-// Controller1          controller                    
-// Puncher              motor         20              
-// inertialSensor       inertial      12              
-// trans                digital_out   A               
-// Indexer              digital_out   B               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
@@ -88,29 +20,28 @@ using namespace vex;
 competition Competition;
 
 // define your global instances of motors and other devices here
-double intakeSensorInit;
+double topIntakeSensorInit;
 double bottomIntakeSensorInit;
+
 /*---------------------------------------------------------------------------*/
-/*                          Pre-Autonomous FunController1ions                         */
+/*                          Pre-Autonomous Functions                         */
 /*                                                                           */
-/*  You may want to perform some aController1ions before the competition starts.      */
-/*  Do them in the following funController1ion.  You must return from this funController1ion   */
+/*  You may want to perform some actions before the competition starts.      */
+/*  Do them in the following function.  You must return from this function   */
 /*  or the autonomous and usercontrol tasks will not be started.  This       */
-/*  funController1ion is only called once after the V5 has been powered on and        */
+/*  function is only called once after the V5 has been powered on and        */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
-
-
-
-
 void calibrateIntakeSensor() {
   wait(1, sec);
+  topIntakeSensorInit = 0;
+  bottomIntakeSensorInit = 0;
   for (int i = 0; i < 10; i++) {
-    intakeSensorInit += IntakeSensor.reflectivity();
-    bottomIntakeSensorInit += BottomIntakeSensor.reflectivity();
+    topIntakeSensorInit += topIntakeSensor.reflectivity();
+    bottomIntakeSensorInit += bottomIntakeSensor.reflectivity();
     wait(20, msec);
   }
-  intakeSensorInit /= 10.0;
+  topIntakeSensorInit /= 10.0;
   bottomIntakeSensorInit /= 10.0;
 }
 
@@ -121,25 +52,25 @@ void calibrateIntertial()
   inertialSensor.calibrate();
   Brain.Screen.clearScreen();
   Brain.Screen.print("...");
-  Controller1.Screen.print("...");
+  Controller.Screen.print("...");
   while (inertialSensor.isCalibrating())
   {
     vex::task::sleep(20);
   }
 
-  Controller1.Screen.print("Done");
+  Controller.Screen.print("Done");
   Brain.Screen.print("Done");
 }
 
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
-  rotSensor.resetPosition();
   vexcodeInit();
+
+  // All activities that occur before the competition starts
+  // Example: clearing encoders, setting servo positions, ...
   calibrateIntakeSensor();
   calibrateIntertial();
 
-  // All aController1ivities that occur before the competition starts
-  // Example: clearing encoders, setting servo positions, ...
 }
 
 /*---------------------------------------------------------------------------*/
@@ -152,21 +83,10 @@ void pre_auton(void) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-
-
 void autonomous(void) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-  //matchWP3();
-  matchWP5();
-  //matchFarRoller();
-  //skills();
-  //halfWP();
-  //testing();
-  //matchFarRoller();
-
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -179,28 +99,20 @@ void autonomous(void) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-// --------------------------------------------------------------- //
-//                       FlyWHEEL PID FUNController1ION
-// --------------------------------------------------------------- //
-
-
 void usercontrol(void) {
   // User control code here, inside the loop
-  //testing();
   drive();
-  //skills();
 }
 
 //
-// Main will set up the competition funController1ions and callbacks.
+// Main will set up the competition functions and callbacks.
 //
 int main() {
   // Set up callbacks for autonomous and driver control periods.
-  Competition.bStopAllTasksBetweenModes = true;
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
 
-  // Run the pre-autonomous funController1ion.
+  // Run the pre-autonomous function.
   pre_auton();
 
   // Prevent main from exiting with an infinite loop.

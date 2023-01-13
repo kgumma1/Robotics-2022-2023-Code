@@ -1,46 +1,48 @@
 using namespace vex;
 
 extern brain Brain;
+extern controller Controller;
 
-// VEXcode devices
-extern motor FlywheelUp;
-extern motor FLDrive;
-extern motor Intake_Roller;
-extern motor BLDrive;
-extern motor FRDrive;
-extern motor BRDrive;
-extern motor FlywheelDown;
-extern controller Controller1;
-extern motor Puncher;
-extern inertial inertialSensor;
-extern digital_out trans;
-extern digital_out Indexer;
+extern motor flywheel;
+extern motor intake_roller;
+
+extern motor RFDrive;
+extern motor RMDrive;
+extern motor RBDrive;
+extern motor_group rDrive;
+
+extern motor LFDrive;
+extern motor LMDrive;
+extern motor LBDrive;
+extern motor_group lDrive;
+
+
 extern triport Expander;
-extern digital_out StringShooters;
-extern digital_out angleChanger;
-extern line IntakeSensor;
-extern line BottomIntakeSensor;
-extern rotation rotSensor;
-extern encoder rightEncoder;
-extern encoder leftEncoder;
-extern encoder backEncoder;
-extern vex::vision::signature Vision__SIG_1;
-extern vex::vision::signature Vision__SIG_2;
-extern vex::vision::signature Vision__SIG_3;
-extern vex::vision::signature Vision__SIG_4;
-extern vex::vision::signature Vision__SIG_5;
-extern vex::vision::signature Vision__SIG_6;
-extern vex::vision::signature Vision__SIG_7;
-extern vision Vision;
 
-extern double intakeSensorInit;
+extern line bottomIntakeSensor;
+extern line topIntakeSensor;
+
+extern encoder leftEncoder;
+extern encoder rightEncoder;
+
+extern inertial inertialSensor;
+extern optical leftRollerSensor;
+extern optical rightRollerSensor;
+
+extern digital_out angleChanger;
+extern digital_out basket;
+extern digital_out intakeLift;
+
+
+
+// GLOBAL VARIABLES
+extern double topIntakeSensorInit;
 extern double bottomIntakeSensorInit;
 extern double Al, Ar, As, rs, xPos1, yPos1;
 
-
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
- * 
+ *
  * This should be called at the start of your int main function.
  */
-void  vexcodeInit( void );
+void vexcodeInit(void);
