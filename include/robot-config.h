@@ -21,6 +21,7 @@ extern triport Expander;
 
 extern line bottomIntakeSensor;
 extern line topIntakeSensor;
+extern line flywheelSensor;
 
 extern encoder leftEncoder;
 extern encoder rightEncoder;
@@ -32,12 +33,14 @@ extern optical rightRollerSensor;
 extern digital_out angleChanger;
 extern digital_out basket;
 extern digital_out intakeLift;
+extern digital_out expansion;
 
 
 
 // GLOBAL VARIABLES
 extern double topIntakeSensorInit;
 extern double bottomIntakeSensorInit;
+extern double flywheelSensorInit;
 extern double Al, Ar, As, rs, xPos1, yPos1;
 
 /**

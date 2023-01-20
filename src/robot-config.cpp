@@ -23,8 +23,9 @@ motor_group lDrive = motor_group(LFDrive, LMDrive, LBDrive);
 
 
 triport Expander = triport(PORT2);
-line bottomIntakeSensor = line(Expander.E);
-line topIntakeSensor = line (Expander.D);
+line bottomIntakeSensor = line(Expander.B);
+line topIntakeSensor = line(Expander.A);
+line flywheelSensor = line(Brain.ThreeWirePort.F);
 
 encoder leftEncoder = encoder(Brain.ThreeWirePort.A);
 encoder rightEncoder = encoder(Brain.ThreeWirePort.G);
@@ -36,6 +37,7 @@ optical rightRollerSensor = optical(PORT4);
 digital_out angleChanger = digital_out(Expander.F);
 digital_out basket = digital_out(Expander.G);
 digital_out intakeLift = digital_out(Expander.H);
+digital_out expansion = digital_out(Brain.ThreeWirePort.D);
 
 bool RemoteControlCodeEnabled = true;
 

@@ -22,6 +22,7 @@ competition Competition;
 // define your global instances of motors and other devices here
 double topIntakeSensorInit;
 double bottomIntakeSensorInit;
+double flywheelSensorInit;
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -32,17 +33,20 @@ double bottomIntakeSensorInit;
 /*  function is only called once after the V5 has been powered on and        */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
-void calibrateIntakeSensor() {
+void calibrateLineSensors() {
   wait(1, sec);
   topIntakeSensorInit = 0;
   bottomIntakeSensorInit = 0;
+  flywheelSensorInit = 0;
   for (int i = 0; i < 10; i++) {
     topIntakeSensorInit += topIntakeSensor.reflectivity();
     bottomIntakeSensorInit += bottomIntakeSensor.reflectivity();
+    flywheelSensorInit += flywheelSensor.reflectivity();
     wait(20, msec);
   }
   topIntakeSensorInit /= 10.0;
   bottomIntakeSensorInit /= 10.0;
+  flywheelSensorInit /= 10.0;
 }
 
 void calibrateIntertial()
@@ -68,7 +72,7 @@ void pre_auton(void) {
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
-  calibrateIntakeSensor();
+  calibrateLineSensors();
   calibrateIntertial();
 
 }
@@ -84,6 +88,9 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
+  //farRoller();
+  //roller();
+  testing();
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................

@@ -29,9 +29,12 @@ double turnExpFunction(double d) {
 void drive() {
 
   bool shooting = false;
+  bool expanded = false;
+  bool expanding = false;
 
   bool r1prev = false;
   bool r2prev = false;
+  bool yprev = false;
   
   int intRollSpeed = 0;
 
@@ -39,12 +42,13 @@ void drive() {
   double basketDelay = 0.1;
 
   vex::timer shotTimer = vex::timer();
+  vex::timer exp = vex::timer();
 
   while (1) {
     displayInfo();
 
     // DRIVE //
-    double initSens = 0.7;
+    double initSens = 0.93;
     double sensInc = -0.0001;
 
 
@@ -62,10 +66,12 @@ void drive() {
 
 
     // FLYWHEEL // 
-    if (flywheel.velocity(rpm) * 6 < 2450 || basketDelayTimer.value() > 0.3) {
-      flywheel.spin(forward, 12, volt);
-    } else {
-      flywheel.spin(forward, 8.25, volt);
+    double speedUpDelay = Controller.ButtonL2.pressing() ? 0.3 : (Controller.ButtonL1.pressing() ? 0.00 : 0.3);
+    
+    if ((flywheel.velocity(rpm) * 6 < 2450 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
+      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 12 : 12, volt);
+    } else if (!(expanded || expanding)) {
+      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8 : 8, volt);
     }
     printf("flywheel = %f\n", flywheel.velocity(rpm) * 6);
 
@@ -129,8 +135,27 @@ void drive() {
 
 
 
+    // EXPANSION //
+    if (Controller.ButtonY.pressing() && !yprev) {
+      exp.reset();
+    }
+    //printf("val = %f\n", exp.value());
+    if (Controller.ButtonY.pressing()) {
+      if (exp.value() > 0.500) {
+        expansion.set(true);
+        expanded = true;
+      }
+      flywheel.stop(brake);
+      expanding = true;
+    } else {
+      expanding = false;
+    }
+
+
+
     r1prev = Controller.ButtonR1.pressing();
     r2prev = Controller.ButtonR2.pressing();
+    yprev = Controller.ButtonY.pressing();
 
     wait(10, msec);
   }
