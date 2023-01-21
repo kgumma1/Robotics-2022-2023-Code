@@ -6,9 +6,9 @@ int drivePID(double dist = 5, double maxSpeed = 12, double timeOut = 10) {
   double error[2];
   double prevError[2];
   double powers[2];
-  double kP = 0.023;
-  double kI = 0.001;
-  double kD = 0.12;
+  double kP = 0.027;
+  double kI = 0.0004;
+  double kD = 0.1;
 
   double PI = 3.14159265358979;
 
@@ -80,9 +80,9 @@ int drivePID(double dist = 5, double maxSpeed = 12, double timeOut = 10) {
     //printf("left = %f, right = %f, errorL = %f, errorR = %f\n", powers[1], powers[0], error[1], error[0]);
     //printf("prop = %f, int = %f, dev = %f, errorR = %f, errorL = %f, pow = %f\n", kP * error[0], integral[0], derivative[0], error[0], error[1], powers[1]);
     wait(10, msec);
-    printf("errorRight = %f, errorLeft = %f", error[0], error[1]);
+    printf("errorRight = %f, errorLeft = %f\n", error[0], error[1]);
 
-  } while ((fabs(error[0]) > 10 && fabs(error[1]) > 10) && exitTimer.value() < timeOut);
+  } while ((fabs(error[0]) > 5 && fabs(error[1]) > 5) && exitTimer.value() < timeOut);
   rDrive.stop(hold);
   lDrive.stop(hold);
   return 1;
@@ -108,7 +108,7 @@ void Turn(double destination, double speed, double timeOut=5) {
   double incFrac = 0.3;
   double decFrac = 0.3;
   double Kd = 2.5; //0.01
-  double Ki = 0.08; //0.0
+  double Ki = 0.11; //0.0
   double Kp = 0.3; //0.67, recent 0.8
   double speedConst = 8;
   double threshold = 0.2;
@@ -226,8 +226,6 @@ int discsShotCount = 0;
 
 void resetDiscCount() {
   discCount = 0;
-  targetSpeed = 0;
-  shotD = 0.2;
 }
 
 int numQueued() {
@@ -270,8 +268,8 @@ int trackDiscsShot() {
       wait(5, msec);
       //printf("flywheelSensor = %ld\n", flywheelSensor.reflectivity());
     }
-    discCount = discCount > 0 ? discCount-- : 0;
-    discsIntaked = discsIntaked > 0 ? discsIntaked-- : 0;
+    discCount = discCount > 0 ? discCount-1 : 0;
+    discsIntaked = discsIntaked > 0 ? discsIntaked-1 : 0;
 
     wait(5, msec);
   }
@@ -282,7 +280,7 @@ int trackDiscsShot() {
 
 int maintain3Discs() {
   while (true) {
-    while (topIntakeSensor.reflectivity() - 4 <= topIntakeSensorInit) {
+    while (topIntakeSensor.reflectivity() - 6 <= topIntakeSensorInit) {
       if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - 4 > bottomIntakeSensorInit) {
         intake_roller.spin(reverse, 100, pct);
       }
@@ -290,8 +288,12 @@ int maintain3Discs() {
         intake_roller.spin(forward, 100, pct);
       }
       wait(5, msec);
+      printf("discCount = %d\n", discCount);
+      printf("discsIntaked = %d\n", discsIntaked);
     }
-    while (topIntakeSensor.reflectivity() - 4 > topIntakeSensorInit) {
+    printf("discCount = %d\n", discCount);
+    printf("discsIntaked = %d\n", discsIntaked);
+    while (topIntakeSensor.reflectivity() - 6 > topIntakeSensorInit) {
       if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - 4 > bottomIntakeSensorInit) {
         intake_roller.spin(reverse, 100, pct);
       }
@@ -299,7 +301,11 @@ int maintain3Discs() {
         intake_roller.spin(forward, 100, pct);
       }
       wait(5, msec);
+      printf("discCount = %d\n", discCount);
+      printf("discsIntaked = %d\n", discsIntaked);
     }
+          printf("discCount = %d\n", discCount);
+      printf("discsIntaked = %d\n", discsIntaked);
     discsIntaked++;
   }
 }
@@ -349,7 +355,7 @@ int flywheelPID() {
     }
 
     if (((errorCount >= 2 && shotTimer.value() > shotD) || shotTimer.value() > maxShotT) && discCount > 0) {
-      intake_roller.startRotateFor(reverse, 520, deg, 100, velocityUnits::pct);
+      intake_roller.startRotateFor(reverse, 500, deg, 100, velocityUnits::pct);
       shotTimer.reset();
       errorCount = 0;
     } /*
@@ -367,7 +373,8 @@ int flywheelPID() {
 
 
     //printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
-    printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
+    //printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
+    printf("discs = %d\n", discsIntaked);
     wait(10, msec);
   } while (true);
   return 1;

@@ -133,6 +133,11 @@ void drive() {
       intake_roller.spin(forward, intRollSpeed, pct);
     }
 
+    if (Controller.ButtonX.pressing()) {
+      intakeLift.set(true);
+    } else {
+      intakeLift.set(false);
+    }
 
 
     // EXPANSION //

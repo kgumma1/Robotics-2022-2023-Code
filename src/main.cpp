@@ -88,9 +88,11 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
+  twoRoller();
   //farRoller();
   //roller();
-  testing();
+  //testing();
+  //winPoint();
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
@@ -109,6 +111,15 @@ void autonomous(void) {
 void usercontrol(void) {
   // User control code here, inside the loop
   drive();
+
+  // testing without comp switch code
+  while(!Controller.ButtonA.pressing()) {
+    wait(5, msec);
+  }
+  twoRoller();
+  //winPoint();
+  //drive();
+  //winPoint();
   //testing();
 }
 
