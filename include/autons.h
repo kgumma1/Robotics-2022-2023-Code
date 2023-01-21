@@ -442,6 +442,43 @@ void matchFarRoller() {
 
 }
 
+void elimCutWP() {
+  // flywheel setup
+  resetDiscCount();
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.0001, 0);
+  queueDiscs(0, 2300, 0.4);
+
+  // first roller
+  spinLeft(15);
+  spinRight(15);
+  wait(400, msec);
+  Intake_Roller.spinFor(0.25, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(500, msec);
+
+ 
+  drivePID(-4);
+
+  Turn(-131, 100);
+  vex::task intake = vex::task(intake1);
+
+  drivePID(66, 11);
+  wait(500, msec);
+  intake.stop();
+  Intake_Roller.spinFor(forward, 0.25, rev, 100, velocityUnits::pct);
+  Turn(-43, 100);
+  wait(200, msec);
+  Intake_Roller.spin(reverse, 100, pct);
+  queueDiscs(3, 2300, 0.4);
+  vex::timer t = vex::timer();
+  t.reset();
+  while (numQueued() > 0 && t.time() < 3.5) {
+    wait(10, msec);
+  }
+  flywheelOn.stop();
+  Turn(35, 100);
+  drivePID(-15, 11);
+}
 
 void matchWP3() {
   // flywheel setup
@@ -477,32 +514,46 @@ void matchWP3() {
     wait(10, msec);
   }
   flywheelOn.stop();
-
-  vex::task intake2 = vex::task(intake3);
   wait(200, msec);
-  Turn(-133, 100);
-  intake.resume();
-  drivePID(68, 11);
-  FlywheelUp.stop(coast);
-  FlywheelDown.stop(coast);
+  queueDiscs(0, 2300, 0.35);
+  drivePID(2.5);
+  Turn(-132, 100);
+  drivePID(66, 11);
+  Turn(-44, 100);
+  wait(100, msec);
+  queueDiscs(3, 2300, 0.35);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  intake.stop();
+  vex::task intake2 = vex::task(intake3);
+  wait(100, msec);
+  queueDiscs(0, 2500, 0.3);
+  Turn(-132, 100);
+  drivePID(67, 12);
+  spinLeft(100);
+  FRDrive.stop(coast);
+  BRDrive.stop(coast);
   intake2.stop();
-  spinLeft(30);
-  FRDrive.stop(hold);
-  BRDrive.stop(hold);
+  Intake_Roller.stop();
   while (getInertialReading() < -110) {
       wait(10, msec);
   }
-  stopBase(hold);
-  spinLeft(20);
-  spinRight(20);
-  Indexer.set(false);
-  Intake_Roller.stop(coast);
-  wait(1500, msec);
 
-  Intake_Roller.spinFor(0.25, rotationUnits::rev, 100, velocityUnits::pct, false);
-  wait(10, sec);
-
+  spinBase(30, 30);
+  wait(200, msec);
+  Intake_Roller.spinFor(0.3, rotationUnits::rev, 100, velocityUnits::pct, false);
+  wait(0.4, sec);
+  stopBase(coast);
+  drivePID(-2);
+  Intake_Roller.spin(reverse, 100, pct);
+  Turn(-83, 100);
+  queueDiscs(3, 2500, 0.3);
+  while(numQueued() > 0){
+    wait(10, msec);
+  }
 }
+
 
 void matchWP5() {
   runTime.reset();

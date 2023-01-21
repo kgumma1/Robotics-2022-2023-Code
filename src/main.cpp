@@ -158,9 +158,10 @@ void autonomous(void) {
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
-  //matchWP3();
-  matchWP5();
-  //matchFarRoller();
+  // matchWP3();
+  elimCutWP();
+  // matchWP5();
+  // matchFarRoller();
   //skills();
   //halfWP();
   //testing();
