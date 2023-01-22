@@ -157,6 +157,77 @@ void winPoint() {
 
 }
 
+void halfWP(){
+  resetDiscCount();
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.00005, 0);
+  queueDiscs(0, 3200, 0.5);
+
+  drivePID(-3, 100, 0.5);
+  intake_roller.spinFor(1.25, rev, 100, velocityUnits::pct, false);
+  wait(300, msec);
+ 
+  drivePID(3);
+  Turn(-162, 90);
+  // simple(60, -60, 0.4); // spins left for 60, right for -60, and holds for 0.5 second. 
+  vex::task runIntake = vex::task(maintain3Discs);/*
+  PISTON LIFT ALTERNATIVE CODE
+  intakeLift.set(tmrue);
+  drivePID(24);
+  intakeLift.set(false);
+
+  wait(3000, msec);
+
+  Turn(-16, 100);*/
+  drivePID(25);
+  drivePID(30, 2);
+  wait(200, msec);
+  Turn(-32, 100);
+
+  queueDiscs(3);
+  vex::timer discTimer = vex::timer();
+  while (numQueued() > 0 && discTimer.value() < 4) {
+    wait(5, msec);
+  }
+  resetDiscCount();
+  wait(200, msec);
+
+  Turn(35, 100);
+  drivePID(-15);
+
+
+  
+  Turn(45, 100);
+  drivePID(85 - 28, 8);
+  //2nd volley - not in time
+  Turn(-65, 100);
+  wait(2000, msec);
+  queueDiscs(3);
+  discTimer.reset();
+  while (numQueued() > 0 && discTimer.value() < 4) {
+    wait(5, msec);
+  }
+  resetDiscCount();
+  queueDiscs(0, 3400);
+  wait(200, msec);
+  
+  //Turn(-137, 100);
+  runIntake.stop();
+  intake_roller.stop(coast);
+  /*
+  drivePID(-16);
+  Tu rn(-90, 100);
+  drivePID(-20, 100, 1);
+  intake_roller.spinFor(1, rev, 100, velocityUnits::pct, false);
+
+
+
+  wait(100, sec);
+  */
+  
+}
+
+
 void twoRoller() {
   drivePID(-3, 100, 0.5);
   intake_roller.spinFor(1.25, rev, 100, velocityUnits::pct, false);

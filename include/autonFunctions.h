@@ -2,7 +2,7 @@
 
 using namespace vex;
 
-int drivePID(double dist = 5, double maxSpeed = 12, double timeOut = 10) {
+int drivePID(double dist = 5, double maxSpeed = 10, double timeOut = 10) { // speed in volts?!?!?!?!?
   double error[2];
   double prevError[2];
   double powers[2];
@@ -23,8 +23,10 @@ int drivePID(double dist = 5, double maxSpeed = 12, double timeOut = 10) {
   integral[0] = 0;
   integral[1] = 0;
 
+  Brain.Screen.print("1");
   vex::timer exitTimer = vex::timer();
     exitTimer.reset();
+
   do {
 
     error[0] = ((dist / (3.25 * PI)) * 360) - rightEncoder.position(deg);
@@ -100,6 +102,27 @@ double getInertialReading()
 }
 
 vex::timer Timer3 = vex::timer();
+
+void simple(float leftSpeed, float rightSpeed, float timeSec) {
+  RFDrive.spin(forward, rightSpeed, pct);
+  RMDrive.spin(forward, rightSpeed, pct);
+  RBDrive.spin(forward, rightSpeed, pct);
+
+  LFDrive.spin(forward, leftSpeed, pct);
+  LMDrive.spin(forward, leftSpeed, pct);
+  LBDrive.spin(forward, leftSpeed, pct);
+  
+  wait(timeSec, sec);
+
+  RFDrive.stop();
+  RMDrive.stop();
+  RBDrive.stop();
+
+  LFDrive.stop();
+  LMDrive.stop();
+  LBDrive.stop();
+
+}
 
 void Turn(double destination, double speed, double timeOut=5) {
   double curAngle, turnAmount, startAngle, output, speedR, speedL, absOutput, passed = 1000, PIDspeed, profile, curAngle2, tAngle, curAngleSgn, prevAngleSgn;
