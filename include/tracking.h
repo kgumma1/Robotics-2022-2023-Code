@@ -1,0 +1,93 @@
+#include "vex.h"
+
+using namespace vex;
+
+#define wheelCirc 2.75 * M_PI 
+#define sideDist 1.75
+#define backDist 5
+
+
+double globalX;
+double globalY;
+double globalAngle;
+
+void displayTracking() {
+  Brain.Screen.clearScreen();
+  Brain.Screen.printAt(5, 20, "X: %f.3", globalX);
+  Brain.Screen.printAt(5, 40, "Y: %f.3", globalY);
+  Brain.Screen.printAt(5, 60, "0: %f.3", globalAngle);
+  Brain.Screen.drawRectangle(240, 0, 240, 240, color(150, 150, 150));
+  for (int i = 1; i < 6; i++) {
+    Brain.Screen.drawLine(240 + 24 * i / 144.0 * 240, 0, 240 + 24 * i / 144.0 * 240, 240);
+  }
+  for (int i = 1; i < 6; i++) {
+    Brain.Screen.drawLine(240, 24 * i / 144.0 * 240, 480, 24 * i / 144.0 * 240);
+  }
+
+  Brain.Screen.drawCircle(240 + globalX / 144.0 * 240, 240 - (globalY / 144.0 * 240), 5, orange);
+}
+
+double getAngleDiff(double prev, double curr) {
+  double diff = curr - prev;
+  if (fabs(diff) > 180) {
+    return diff > 0 ? (diff) - 360 : (diff) + 360;
+  } else {
+    return diff;
+  }
+}
+
+int startTracking() {
+
+  double prevAngle = 0;
+  double currAngle = 0;
+  double angleChange = 0;
+  double headingDiff;
+
+  double sideWheelCurr;
+  double backWheelCurr;
+  double sideWheelPrev = 0;
+  double backWheelPrev = 0;
+  double sideWheelDelta;
+  double backWheelDelta;
+  
+  double deltaX;
+  double deltaY;
+
+  leftEncoder.resetRotation();
+  backEncoder.resetRotation();
+
+  while (true) {
+    currAngle = inertialSensor.heading();
+    angleChange = getAngleDiff(prevAngle, currAngle) * M_PI / 180.0;
+
+    sideWheelCurr = leftEncoder.position(deg);
+    sideWheelDelta = (sideWheelCurr - sideWheelPrev) * wheelCirc / 360;
+    backWheelCurr = backEncoder.position(deg);
+    backWheelDelta = (backWheelCurr - backWheelPrev) * wheelCirc / 360;
+
+
+    headingDiff = getAngleDiff(0, currAngle) * M_PI / 180.0;
+
+    if (angleChange == 0) {
+      deltaX = backWheelDelta * cos(headingDiff) - sideWheelDelta * sin(headingDiff);
+      deltaY = backWheelDelta * sin(headingDiff) + sideWheelDelta * cos(headingDiff);
+    } else {
+      deltaX = (2 * sin(angleChange/2) * (backWheelDelta/angleChange - backDist) * cos(headingDiff)) - (2 * sin(angleChange/2) * (sideWheelDelta/angleChange - sideDist) * sin(headingDiff));
+      deltaY = (2 * sin(angleChange/2) * (backWheelDelta/angleChange - backDist) * sin(headingDiff)) + (2 * sin(angleChange/2) * (sideWheelDelta/angleChange - sideDist) * cos(headingDiff));
+    }
+
+    globalX -= deltaX;
+    globalY += deltaY;
+    globalAngle = currAngle;
+
+    prevAngle = currAngle;
+    sideWheelPrev = sideWheelCurr;
+    backWheelPrev = backWheelCurr;
+
+  
+
+    wait(5, msec);
+
+  }
+  return 1;
+}

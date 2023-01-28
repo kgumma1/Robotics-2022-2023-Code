@@ -91,9 +91,9 @@ void autonomous(void) {
   //twoRoller();
   //farRoller();
   //roller();
-  //testing();
+  testing();
   //winPoint();
-  halfWP();
+  //halfWP();
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
@@ -111,13 +111,13 @@ void autonomous(void) {
 
 void usercontrol(void) {
   // User control code here, inside the loop
-  drive();
-
+  //drive();
+  testing();
   // testing without comp switch code
   while(!Controller.ButtonA.pressing()) {
     wait(5, msec);
   }
-  twoRoller();
+  //twoRoller();
   //winPoint();
   //drive();
   //winPoint();

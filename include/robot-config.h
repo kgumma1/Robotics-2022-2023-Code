@@ -24,7 +24,7 @@ extern line topIntakeSensor;
 extern line flywheelSensor;
 
 extern encoder leftEncoder;
-extern encoder rightEncoder;
+extern encoder backEncoder;
 
 extern inertial inertialSensor;
 extern optical leftRollerSensor;
@@ -41,7 +41,9 @@ extern digital_out expansion;
 extern double topIntakeSensorInit;
 extern double bottomIntakeSensorInit;
 extern double flywheelSensorInit;
-extern double Al, Ar, As, rs, xPos1, yPos1;
+extern double globalX;
+extern double globalY;
+extern double globalAngle;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

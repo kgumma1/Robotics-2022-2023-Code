@@ -28,7 +28,7 @@ line topIntakeSensor = line(Expander.A);
 line flywheelSensor = line(Brain.ThreeWirePort.F);
 
 encoder leftEncoder = encoder(Brain.ThreeWirePort.A);
-encoder rightEncoder = encoder(Brain.ThreeWirePort.G);
+encoder backEncoder = encoder(Brain.ThreeWirePort.G);
 
 inertial inertialSensor = inertial(PORT14);
 optical leftRollerSensor = optical(PORT3);
