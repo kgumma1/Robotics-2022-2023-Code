@@ -6,6 +6,7 @@ using namespace vex;
 
 
 void testing() {
+
   globalX = 0;
   globalY = 0;
   vex::task track = vex::task(startTracking);

@@ -4,7 +4,8 @@ using namespace vex;
 
 #define wheelCirc 2.75 * M_PI 
 #define sideDist 1.75
-#define backDist 5
+#define backDist 12.75
+#define errorPerRotation 2.5
 
 
 double globalX;
@@ -13,9 +14,11 @@ double globalAngle;
 
 void displayTracking() {
   Brain.Screen.clearScreen();
-  Brain.Screen.printAt(5, 20, "X: %f.3", globalX);
-  Brain.Screen.printAt(5, 40, "Y: %f.3", globalY);
-  Brain.Screen.printAt(5, 60, "0: %f.3", globalAngle);
+  Brain.Screen.printAt(5, 20, "X: %.3f", globalX);
+  Brain.Screen.printAt(5, 40, "Y: %.3f", globalY);
+  Brain.Screen.printAt(5, 60, "0: %.3f", globalAngle);
+  Brain.Screen.printAt(5, 80, "L: %.3f", leftEncoder.position(deg));
+  Brain.Screen.printAt(5, 100, "B: %.3f", backEncoder.position(deg));
   Brain.Screen.drawRectangle(240, 0, 240, 240, color(150, 150, 150));
   for (int i = 1; i < 6; i++) {
     Brain.Screen.drawLine(240 + 24 * i / 144.0 * 240, 0, 240 + 24 * i / 144.0 * 240, 240);
@@ -25,6 +28,11 @@ void displayTracking() {
   }
 
   Brain.Screen.drawCircle(240 + globalX / 144.0 * 240, 240 - (globalY / 144.0 * 240), 5, orange);
+}
+
+double inertialAdjusted() {
+  double curr = inertialSensor.heading();
+  return curr - inertialSensor.rotation() / 360.0 * errorPerRotation;
 }
 
 double getAngleDiff(double prev, double curr) {
@@ -57,7 +65,7 @@ int startTracking() {
   backEncoder.resetRotation();
 
   while (true) {
-    currAngle = inertialSensor.heading();
+    currAngle = inertialAdjusted();
     angleChange = getAngleDiff(prevAngle, currAngle) * M_PI / 180.0;
 
     sideWheelCurr = leftEncoder.position(deg);
