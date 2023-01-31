@@ -67,12 +67,10 @@ class Bezier {
       points[3] = p1.location;
       points[1] = findControlPoint(p0);
       points[2] = findControlPoint(p1);
-      
-
     }
 
     // PUBLIC FUNCTIONS
-    double closestPointTo(Point p) { // return t value
+    double closestPointTo(Point p) { // WORK IN PROGRESS
       return p.x;
     }
 
@@ -95,11 +93,11 @@ class Bezier {
 
     // PRIVATE FUNCTIONS
     Point findControlPoint(Point anchor, double angle, double adherence) {
-      return Point(adherence * cos(angle) + anchor.x, adherence * sin(angle) + anchor.y);
+      return Point(adherence * cos(-angle + M_PI / 2) + anchor.x, adherence * sin(-angle + M_PI / 2) + anchor.y);
     }
 
     Point findControlPoint(Pose p) {
-      return Point(p.adherence * cos(p.angle) + p.location.x, p.adherence * sin(p.angle) + p.location.y);
+      return Point(p.adherence * cos(-p.angle + M_PI / 2) + p.location.x, p.adherence * sin(-p.angle + M_PI / 2) + p.location.y);
     }
     
 
