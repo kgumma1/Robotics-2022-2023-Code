@@ -13,6 +13,7 @@
 #include <string.h>
 #include <string>
 #include <cstdarg>
+#include <vector>
 
 #include "v5.h"
 #include "v5_vcs.h"

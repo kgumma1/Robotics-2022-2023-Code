@@ -3,7 +3,9 @@
 
 using namespace vex;
 
-
+  Point convertToDisplay(Point p) {
+    return Point(240 + p.x / 144 * 240, 240 - (p.y / 144.0 * 240));
+  }
 
 void testing() {
 
@@ -14,8 +16,28 @@ void testing() {
     double sensInc = -0.0001;
   //lDrive.spinFor(1, sec, 25, velocityUnits::pct);
   //rDrive.spinFor(1, sec, 25, velocityUnits::pct);
+  Bezier b = Bezier(Pose(10, 10, -50, 70), Pose(100, 100, 100, 60));
   while(true){
-    displayTracking();/*
+    displayTracking();
+    b.display(30);
+    Point x = Point(110, 112);
+    double t = b.closestPointTo(x);
+    x = convertToDisplay(x);
+    Point y = b.getValue(t);
+    printf("x = %f, y = %f\n", y.x, y.y);
+    y = convertToDisplay(y);
+
+
+    Brain.Screen.drawCircle(x.x, x.y, 5, red);
+    Brain.Screen.drawCircle(y.x, y.y, 5, blue);
+    Point z = Point(100, 100);
+    z = convertToDisplay(z);
+    Brain.Screen.drawCircle(z.x, z.y, 5, green);
+ 
+
+
+
+    /*
     printf("x = %f, y = %f\n", globalX, globalY);
     double Axis3Adjusted = fabs(Controller.Axis3.position()) > 5 ? straightExpFunction(Controller.Axis3.position()) : 0;
     double Axis1Adjusted = fabs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.9) : 0;

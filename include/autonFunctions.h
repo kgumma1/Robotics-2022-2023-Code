@@ -1,5 +1,6 @@
 #include "vex.h"
 #include "tracking.h"
+#include "bezier.h"
 
 using namespace vex;
 
