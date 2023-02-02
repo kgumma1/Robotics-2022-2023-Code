@@ -4,6 +4,49 @@
 
 using namespace vex;
 
+class State : public Pose {
+  public:
+    double speed;
+
+    State() : Pose() {
+      this->speed = 100;
+    }
+
+    State(double x, double y, double angle, double adherence, double speed = 100) : Pose(x, y, angle, adherence) {
+      this->speed = speed;
+    }
+
+    State(Point location, double angle, double adherence, double speed = 100) : Pose(location, angle, adherence) {
+      this->speed = speed;
+    }
+};
+
+void move(int count, double initAdherence, ...) {
+
+  va_list statesInputList;
+  va_start(statesInputList, initAdherence);
+
+  State states[count + 1];
+  Bezier beziers[count];
+  states[0] = State(globalX, globalY, globalAngle, initAdherence, 100);
+  
+  for (int i = 1; i <= count; i++) {
+    states[i] = va_arg(statesInputList, State);
+  }
+  
+  for (int i = 0; i < count; i++) {
+    beziers[i] = Bezier(states[i], states[i+1]);
+  }
+
+  for (int i = 0; i < count; i++) {
+    do {
+
+    } while(true);
+
+
+  }
+}
+
 
 
 int discCount = 0;

@@ -14,6 +14,7 @@
 #include <string>
 #include <cstdarg>
 #include <vector>
+#include <iostream>
 
 #include "v5.h"
 #include "v5_vcs.h"

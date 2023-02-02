@@ -60,6 +60,10 @@ class Bezier {
   public:
 
     // CONSTRUCTORS
+    Bezier() {
+      Bezier(Pose(), Pose());
+    }
+  
     Bezier(Pose p0, Pose p1, int sampleSize = 10, int divisions = 10) {
       poses[0] = p0,
       poses[1] = p1;
@@ -122,6 +126,14 @@ class Bezier {
 
     }
 
+    double lengthleft(double t, double spacing = 0.01) {
+      double sum = 0;
+      for (int i = t; i < 1; i += spacing) {
+        sum += getValue(t).distTo(getValue(t+spacing));
+      }
+      return sum;
+    }
+
     void display(int numSegments) {
       Point coords[numSegments + 1];
 
@@ -179,8 +191,8 @@ class Bezier {
       }
     }
 
-  Point convertToDisplay(Point p) {
-    return Point(240 + p.x / 144 * 240, 240 - (p.y / 144.0 * 240));
-  }
+    Point convertToDisplay(Point p) {
+      return Point(240 + p.x / 144 * 240, 240 - (p.y / 144.0 * 240));
+    }
 
 };
