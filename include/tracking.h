@@ -44,6 +44,14 @@ double getAngleDiff(double prev, double curr) {
   }
 }
 
+double toRad(double deg) {
+  return deg * M_PI / 180;
+}
+
+double toDeg(double rad) {
+  return rad * 180 / M_PI;
+}
+
 int startTracking() {
 
   double prevAngle = 0;
@@ -66,7 +74,7 @@ int startTracking() {
 
   while (true) {
     currAngle = inertialAdjusted();
-    angleChange = getAngleDiff(prevAngle, currAngle) * M_PI / 180.0;
+    angleChange = toRad(getAngleDiff(prevAngle, currAngle));
 
     sideWheelCurr = leftEncoder.position(deg);
     sideWheelDelta = (sideWheelCurr - sideWheelPrev) * wheelCirc / 360;
@@ -74,7 +82,7 @@ int startTracking() {
     backWheelDelta = (backWheelCurr - backWheelPrev) * wheelCirc / 360;
 
 
-    headingDiff = getAngleDiff(0, currAngle) * M_PI / 180.0;
+    headingDiff = toRad(getAngleDiff(0, currAngle));
 
     if (angleChange == 0) {
       deltaX = backWheelDelta * cos(headingDiff) - sideWheelDelta * sin(headingDiff);

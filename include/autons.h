@@ -3,10 +3,6 @@
 
 using namespace vex;
 
-Point convertToDisplay(Point p) {
-  return Point(240 + p.x / 144 * 240, 240 - (p.y / 144.0 * 240));
-}
-
 Point findControlPoint(Point anchor, double angle, double adherence) {
   angle = angle * M_PI / 180;
   return Point(adherence * cos(-angle + M_PI / 2) + anchor.x, adherence * sin(-angle + M_PI / 2) + anchor.y);
@@ -16,18 +12,20 @@ void testing() {
 
   globalX = 0;
   globalY = 0;
+    printf("WORKING%d\n", 1);
   vex::task track = vex::task(startTracking);
       double initSens = 0.93;
     double sensInc = -0.0001;
     wait(1, sec);
-  move(3, 10, State(10, 10, 30, 10), State(Point(30, 20), 70, 20), State(Point(100, 1), 150, 19, 15));
+  printf("WORKING%d\n", 1);
+  move(3, 50, State(100, 120, 210, 50), State(Point(100, 20), 70, 20), State(Point(100, 1), 150, 19, 15));
 
-
-  /*
+  
   //printf("x: %f, y: %f, angle: %f, adherence: %f, speed: %f\n", ss.location.x, ss.location.y, ss.angle, ss.adherence, ss.speed);
-  Bezier b = Bezier(ss, ss);
+  //Bezier b = Bezier(ss, ss);
   while(true){
     displayTracking();
+    /*
     b.display(30);
     Point x = Point(globalX, globalY);
     double t = b.closestPointTo(x);
@@ -49,8 +47,8 @@ void testing() {
     Brain.Screen.drawCircle(z.x, z.y, 5, green);
 
     
-    wait(50, msec);
-  }*/
+    wait(50, msec);*/
+  }
 }
 
 

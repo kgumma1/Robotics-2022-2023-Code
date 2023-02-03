@@ -22,7 +22,7 @@ motor LBDrive = motor(PORT11, ratio6_1, true);
 motor_group lDrive = motor_group(LFDrive, LMDrive, LBDrive);
 
 
-triport Expander = triport(PORT2);
+triport Expander = triport(PORT14); // 2
 line bottomIntakeSensor = line(Expander.B);
 line topIntakeSensor = line(Expander.A);
 line flywheelSensor = line(Brain.ThreeWirePort.F);
@@ -30,7 +30,7 @@ line flywheelSensor = line(Brain.ThreeWirePort.F);
 encoder leftEncoder = encoder(Brain.ThreeWirePort.A);
 encoder backEncoder = encoder(Brain.ThreeWirePort.G);
 
-inertial inertialSensor = inertial(PORT14);
+inertial inertialSensor = inertial(PORT14); // 14
 optical leftRollerSensor = optical(PORT3);
 optical rightRollerSensor = optical(PORT4);
 

@@ -6,18 +6,18 @@ using namespace vex;
 
 class State : public Pose {
   public:
-    double speed;
+    double maxSpeed;
 
     State() : Pose() {
-      this->speed = 100;
+      this->maxSpeed = 100;
     }
 
-    State(double x, double y, double angle, double adherence, double speed = 100) : Pose(x, y, angle, adherence) {
-      this->speed = speed;
+    State(double x, double y, double angle, double adherence, double maxSpeed = 100) : Pose(x, y, angle, adherence) {
+      this->maxSpeed = maxSpeed;
     }
 
-    State(Point location, double angle, double adherence, double speed = 100) : Pose(location, angle, adherence) {
-      this->speed = speed;
+    State(Point location, double angle, double adherence, double maxSpeed = 100) : Pose(location, angle, adherence) {
+      this->maxSpeed = maxSpeed;
     }
 };
 
@@ -28,22 +28,65 @@ void move(int count, double initAdherence, ...) {
 
   State states[count + 1];
   Bezier beziers[count];
-  states[0] = State(globalX, globalY, globalAngle, initAdherence, 100);
+  states[0] = State(globalX, globalY, globalAngle, initAdherence);
   
   for (int i = 1; i <= count; i++) {
     states[i] = va_arg(statesInputList, State);
   }
   
+  double totalLength = 0;
   for (int i = 0; i < count; i++) {
     beziers[i] = Bezier(states[i], states[i+1]);
+    totalLength += beziers[i].lengthleft(0);
   }
 
+  double tOfClosestPoint;
+  Point closestPoint;
+
+  Pose robotPose;
+
+  double crossTrackError;
+  double angleError;
+  double totalError;
+
+  double powerLeft;
+  double powerRight;
+
+  double maxSpeed;
+
+  double kAngle = 3;
+  double kCross = 10;
+  double kP = 0.1;
+  double kI = 0;
+  double kD = 0;
+
+  
   for (int i = 0; i < count; i++) {
+    totalLength -= beziers[i].lengthleft(0);
+    maxSpeed = states[i+1].maxSpeed;
     do {
+      robotPose.location.x = globalX;
+      robotPose.location.y = globalY;
+      robotPose.angle = globalAngle;
+      tOfClosestPoint = beziers[i].closestPointTo(robotPose.location);
+      closestPoint = beziers[i].getValue(tOfClosestPoint);
+      angleError = getAngleDiff(beziers[i].getAngle(tOfClosestPoint), robotPose.angle);
+      crossTrackError = closestPoint.distTo(robotPose.location) * ((closestPoint.x - robotPose.location.x) * cos(toRad(robotPose.angle)) - (closestPoint.y - robotPose.location.y) * sin(toRad(robotPose.angle)) >= 0 ? 1 : -1);
+      displayTracking();
+      beziers[i].display(30);
+      Brain.Screen.drawCircle(closestPoint.convertToDisplay().x, closestPoint.convertToDisplay().y, 5, blue);
+      Brain.Screen.drawLine(closestPoint.convertToDisplay().x, closestPoint.convertToDisplay().y, robotPose.location.convertToDisplay().x, robotPose.location.convertToDisplay().y);
+      totalError = beziers[i].lengthleft(tOfClosestPoint) + fabs(crossTrackError) + totalLength;
+      
+      powerLeft  = totalError * kP > maxSpeed ? maxSpeed : totalError * kP;
+      powerRight = totalError * kP > maxSpeed ? maxSpeed : totalError * kP;
+      
+      powerLeft  = powerLeft  - (kAngle * angleError) + (kCross * crossTrackError);
+      powerRight = powerRight + (kAngle * angleError) - (kCross * crossTrackError);
 
-    } while(true);
-
-
+      printf("totalError: %f, powerLeft: %f, powerRight: %f\n", totalError, powerLeft, powerRight);
+      wait(10, msec);
+    } while(/*totalError < 0.25 && angleError < 0.5*/ true);
   }
 }
 

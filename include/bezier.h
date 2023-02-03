@@ -24,6 +24,10 @@ class Point {
     double distTo(Point p) {
       return sqrt(pow(x-p.x, 2) + pow(y-p.y, 2));
     };
+
+    Point convertToDisplay() {
+      return Point(240 + x / 144 * 240, 240 - (y / 144.0 * 240));
+    }
 };
 
 class Pose {
@@ -122,14 +126,14 @@ class Bezier {
       double dy = (3 * pow(1-t, 2) *             (points[1].y - points[0].y)) + 
                   (6 *    (1-t)    *     t     * (points[2].y - points[1].y)) +
                   (3 *               pow(t, 2) * (points[3].y - points[2].y));
-      return -atan2(dy, dx) * 180 / M_PI + 90; 
+      return toDeg(-atan2(dy, dx)) + 90; 
 
     }
 
     double lengthleft(double t, double spacing = 0.01) {
       double sum = 0;
-      for (int i = t; i < 1; i += spacing) {
-        sum += getValue(t).distTo(getValue(t+spacing));
+      for (double i = t; i <= 1; i += spacing) {
+        sum += getValue(t).distTo(getValue(i+spacing));
       }
       return sum;
     }
@@ -139,7 +143,7 @@ class Bezier {
 
       for (int i = 0; i <= numSegments; i++) {
         coords[i] = getValue(i / (double) numSegments);
-        coords[i] = convertToDisplay(coords[i]);
+        coords[i] = coords[i].convertToDisplay();
       }
 
       for (int i = 0; i < numSegments; i++) {
@@ -158,13 +162,13 @@ class Bezier {
 
     // PRIVATE FUNCTIONS
     Point findControlPoint(Point anchor, double angle, double adherence) {
-      angle = angle * M_PI / 180;
+      angle = toRad(angle);
       return Point(adherence * cos(-angle + M_PI / 2) + anchor.x, adherence * sin(-angle + M_PI / 2) + anchor.y);
     }
 
     Point findControlPoint(Pose p) {
-      double adjangle = p.angle * M_PI / 180;
-      return Point(p.adherence * cos(-adjangle + M_PI / 2) + p.location.x, p.adherence * sin(-adjangle + M_PI / 2) + p.location.y);
+      double adjAngle = toRad(p.angle);
+      return Point(p.adherence * cos(-adjAngle + M_PI / 2) + p.location.x, p.adherence * sin(-adjAngle + M_PI / 2) + p.location.y);
     }
 
     double binarySearchMinDist(int n, double vals[5], double spacing, Point p) {
@@ -189,10 +193,6 @@ class Bezier {
         double newVals[] = {minT - 2 * spacing, minT - 1.5 * spacing, minT - spacing, minT - 0.5 * spacing, minT};
         return binarySearchMinDist(n - 1, newVals, 0.5 * spacing, p);
       }
-    }
-
-    Point convertToDisplay(Point p) {
-      return Point(240 + p.x / 144 * 240, 240 - (p.y / 144.0 * 240));
     }
 
 };
