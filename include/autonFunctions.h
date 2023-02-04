@@ -54,9 +54,11 @@ void move(int count, double initAdherence, ...) {
 
   double maxSpeed;
 
-  double kAngle = 3;
-  double kCross = 10;
-  double kP = 0.1;
+  double kAngle = 0.03;
+  double kCross = 1.3;
+  double kC = 1.03;
+
+  double kP = 0.01;
   double kI = 0;
   double kD = 0;
 
@@ -81,8 +83,17 @@ void move(int count, double initAdherence, ...) {
       powerLeft  = totalError * kP > maxSpeed ? maxSpeed : totalError * kP;
       powerRight = totalError * kP > maxSpeed ? maxSpeed : totalError * kP;
       
-      powerLeft  = powerLeft  - (kAngle * angleError) + (kCross * crossTrackError);
-      powerRight = powerRight + (kAngle * angleError) - (kCross * crossTrackError);
+      powerLeft  = powerLeft  - ((kAngle * angleError) + (kCross * pow(crossTrackError, 2)))*(1 / pow(fabs(powerLeft), kC));
+      powerRight = powerRight + ((kAngle * angleError) - (kCross * pow(crossTrackError, 2)))*(1 / pow(fabs(powerRight), kC));
+
+      Brain.Screen.printAt(5, 120, "PowLeft:  %.3f", powerLeft);
+      Brain.Screen.printAt(5, 140, "PowRight: %.3f", powerRight);
+      Brain.Screen.printAt(5, 160, "AngC: %.3f", angleError);
+      Brain.Screen.printAt(5, 180, "CrossC: %.3f", crossTrackError);
+
+      lDrive.spin(fwd, powerLeft, pct);
+      rDrive.spin(fwd, powerRight, pct);
+
 
       printf("totalError: %f, powerLeft: %f, powerRight: %f\n", totalError, powerLeft, powerRight);
       wait(10, msec);

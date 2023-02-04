@@ -18,7 +18,7 @@ void testing() {
     double sensInc = -0.0001;
     wait(1, sec);
   printf("WORKING%d\n", 1);
-  move(3, 50, State(100, 120, 210, 50), State(Point(100, 20), 70, 20), State(Point(100, 1), 150, 19, 15));
+  move(3, 20, State(50, 30, 160, 30, 50), State(Point(100, 20), 70, 20), State(Point(100, 1), 150, 19, 15));
 
   
   //printf("x: %f, y: %f, angle: %f, adherence: %f, speed: %f\n", ss.location.x, ss.location.y, ss.angle, ss.adherence, ss.speed);
