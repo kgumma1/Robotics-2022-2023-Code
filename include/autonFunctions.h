@@ -21,21 +21,28 @@ class State : public Pose {
     }
 };
 
-void move(int count, double initAdherence, ...) {
+void move(directionType d, int count, double initAdherence, ...) {
 
   va_list statesInputList;
   va_start(statesInputList, initAdherence);
 
   State states[count + 1];
   Bezier beziers[count];
-  states[0] = State(globalX, globalY, globalAngle, initAdherence);
+    
+  double dir = (d == forward ? 1 : -1);
+  states[0] = State(globalX, globalY, globalAngle, initAdherence * dir);
   
+
+
   for (int i = 1; i <= count; i++) {
     states[i] = va_arg(statesInputList, State);
+    states[i].adherence *= dir;
   }
+
   
   double totalLength = 0;
   for (int i = 0; i < count; i++) {
+
     beziers[i] = Bezier(states[i], states[i+1]);
     totalLength += beziers[i].lengthleft(0);
   }
@@ -52,13 +59,15 @@ void move(int count, double initAdherence, ...) {
   double powerLeft;
   double powerRight;
 
+
+
   double maxSpeed;
 
-  double kAngle = 0.03;
-  double kCross = 1.3;
+  double kAngle = dir == 1 ? 0.5 : 0;
+  double kCross = dir == 1 ? 3 : 5;
   double kC = 1.03;
 
-  double kP = 0.01;
+  double kP = 1.9;
   double kI = 0;
   double kD = 0;
 
@@ -66,39 +75,46 @@ void move(int count, double initAdherence, ...) {
   for (int i = 0; i < count; i++) {
     totalLength -= beziers[i].lengthleft(0);
     maxSpeed = states[i+1].maxSpeed;
+    
     do {
       robotPose.location.x = globalX;
       robotPose.location.y = globalY;
-      robotPose.angle = globalAngle;
+      robotPose.angle = dir == 1 ? globalAngle : (globalAngle - 180 >= 0 ? globalAngle - 180 : globalAngle + 180);
       tOfClosestPoint = beziers[i].closestPointTo(robotPose.location);
       closestPoint = beziers[i].getValue(tOfClosestPoint);
+
       angleError = getAngleDiff(beziers[i].getAngle(tOfClosestPoint), robotPose.angle);
       crossTrackError = closestPoint.distTo(robotPose.location) * ((closestPoint.x - robotPose.location.x) * cos(toRad(robotPose.angle)) - (closestPoint.y - robotPose.location.y) * sin(toRad(robotPose.angle)) >= 0 ? 1 : -1);
       displayTracking();
-      beziers[i].display(30);
+      beziers[i].display(20);
       Brain.Screen.drawCircle(closestPoint.convertToDisplay().x, closestPoint.convertToDisplay().y, 5, blue);
       Brain.Screen.drawLine(closestPoint.convertToDisplay().x, closestPoint.convertToDisplay().y, robotPose.location.convertToDisplay().x, robotPose.location.convertToDisplay().y);
+
       totalError = beziers[i].lengthleft(tOfClosestPoint) + fabs(crossTrackError) + totalLength;
       
       powerLeft  = totalError * kP > maxSpeed ? maxSpeed : totalError * kP;
       powerRight = totalError * kP > maxSpeed ? maxSpeed : totalError * kP;
       
-      powerLeft  = powerLeft  - ((kAngle * angleError) + (kCross * pow(crossTrackError, 2)))*(1 / pow(fabs(powerLeft), kC));
-      powerRight = powerRight + ((kAngle * angleError) - (kCross * pow(crossTrackError, 2)))*(1 / pow(fabs(powerRight), kC));
+      powerLeft  = powerLeft * dir  + ((0.064 * fabs(powerLeft) * kAngle * -angleError) + (kCross * crossTrackError))/**(1 / pow(fabs(powerLeft), kC))*/;
+      powerRight = powerRight * dir + ((0.064 * fabs(powerRight) * kAngle * angleError) + (kCross * -crossTrackError))/**(1 / pow(fabs(powerRight), kC))*/;
 
       Brain.Screen.printAt(5, 120, "PowLeft:  %.3f", powerLeft);
       Brain.Screen.printAt(5, 140, "PowRight: %.3f", powerRight);
       Brain.Screen.printAt(5, 160, "AngC: %.3f", angleError);
       Brain.Screen.printAt(5, 180, "CrossC: %.3f", crossTrackError);
+      Brain.Screen.printAt(5, 200, "PointAng: %.3f", beziers[i].getAngle(tOfClosestPoint));
+      
+      
+      lDrive.spin(fwd, powerLeft / 100.0 * 12, volt);
+      rDrive.spin(fwd, powerRight / 100.0 * 12, volt);
 
-      lDrive.spin(fwd, powerLeft, pct);
-      rDrive.spin(fwd, powerRight, pct);
 
-
-      printf("totalError: %f, powerLeft: %f, powerRight: %f\n", totalError, powerLeft, powerRight);
+      printf("totalError: %f, powerLeft: %f, powerRight: %f, lengthLeft: %f\n", totalError, powerLeft, powerRight, beziers[i].lengthleft(tOfClosestPoint));
       wait(10, msec);
-    } while(/*totalError < 0.25 && angleError < 0.5*/ true);
+    } while(beziers[i].lengthleft(tOfClosestPoint) > 1);
   }
+
+
 }
 
 

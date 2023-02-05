@@ -11,15 +11,15 @@ Point findControlPoint(Point anchor, double angle, double adherence) {
 void testing() {
 
   globalX = 0;
-  globalY = 0;
+  globalY = 60;
     printf("WORKING%d\n", 1);
   vex::task track = vex::task(startTracking);
       double initSens = 0.93;
     double sensInc = -0.0001;
     wait(1, sec);
   printf("WORKING%d\n", 1);
-  move(3, 20, State(50, 30, 160, 30, 50), State(Point(100, 20), 70, 20), State(Point(100, 1), 150, 19, 15));
-
+  //move(forward, 3, 20, State(50, 30, 160, 30, 50), State(20, 30, 0, 15, 50), State(0, 70, -30, 40, 50));
+  move(reverse, 3, 20, State(30, 30, -30, 20, 20), State(60, 60, -150, 30, 20), State(100, 100, -180, 40, 20));
   
   //printf("x: %f, y: %f, angle: %f, adherence: %f, speed: %f\n", ss.location.x, ss.location.y, ss.angle, ss.adherence, ss.speed);
   //Bezier b = Bezier(ss, ss);
@@ -46,8 +46,8 @@ void testing() {
     z = convertToDisplay(z);
     Brain.Screen.drawCircle(z.x, z.y, 5, green);
 
-    
-    wait(50, msec);*/
+    */
+    wait(50, msec);
   }
 }
 

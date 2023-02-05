@@ -133,7 +133,7 @@ class Bezier {
     double lengthleft(double t, double spacing = 0.01) {
       double sum = 0;
       for (double i = t; i <= 1; i += spacing) {
-        sum += getValue(t).distTo(getValue(i+spacing));
+        sum += getValue(i).distTo(getValue(i+spacing));
       }
       return sum;
     }

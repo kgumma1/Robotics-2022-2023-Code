@@ -111,8 +111,8 @@ void autonomous(void) {
 
 void usercontrol(void) {
   // User control code here, inside the loop
-  //drive();
-  testing();
+  drive();
+  //testing();
   // testing without comp switch code
   while(!Controller.ButtonA.pressing()) {
     wait(5, msec);
