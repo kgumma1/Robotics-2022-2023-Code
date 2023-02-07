@@ -11,20 +11,20 @@ Point findControlPoint(Point anchor, double angle, double adherence) {
 void testing() {
 
   globalX = 0;
-  globalY = 60;
+  globalY = 0;
     printf("WORKING%d\n", 1);
   vex::task track = vex::task(startTracking);
       double initSens = 0.93;
     double sensInc = -0.0001;
-    wait(1, sec);
+    wait(5, sec);
   printf("WORKING%d\n", 1);
-  //move(forward, 3, 20, State(50, 30, 160, 30, 50), State(20, 30, 0, 15, 50), State(0, 70, -30, 40, 50));
-  move(reverse, 3, 20, State(30, 30, -30, 20, 20), State(60, 60, -150, 30, 20), State(100, 100, -180, 40, 20));
-  
+  //move(forward, 3, 20, State(50, 30, 160, 30, 100), State(20, 30, 0, 15, 100), State(0, 70, -30, 40, 50));
+  //move(reverse, 3, 40, State(20, 30, 0, 15, 20), State(50, 30, 160, 30, 20), State(0, 0, 0, 20, 20));
+  move(reverse, 3, 20, State(50, 30, -20, 30, 20), State(20, 30, -180, 15, 20), State(0, 70, 150, 40, 20));  
   //printf("x: %f, y: %f, angle: %f, adherence: %f, speed: %f\n", ss.location.x, ss.location.y, ss.angle, ss.adherence, ss.speed);
   //Bezier b = Bezier(ss, ss);
   while(true){
-    displayTracking();
+    //displayTracking();
     /*
     b.display(30);
     Point x = Point(globalX, globalY);

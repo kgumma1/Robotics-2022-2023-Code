@@ -63,13 +63,14 @@ void move(directionType d, int count, double initAdherence, ...) {
 
   double maxSpeed;
 
-  double kAngle = dir == 1 ? 0.5 : 0;
+  double kAngle = dir == 1 ? 0.5 : 1.2;
   double kCross = dir == 1 ? 3 : 5;
-  double kC = 1.03;
 
-  double kP = 1.9;
+  double kP = 2.3;
   double kI = 0;
   double kD = 0;
+
+  std::vector<Point> visited;
 
   
   for (int i = 0; i < count; i++) {
@@ -79,6 +80,7 @@ void move(directionType d, int count, double initAdherence, ...) {
     do {
       robotPose.location.x = globalX;
       robotPose.location.y = globalY;
+      visited.push_back(robotPose.location.convertToDisplay());
       robotPose.angle = dir == 1 ? globalAngle : (globalAngle - 180 >= 0 ? globalAngle - 180 : globalAngle + 180);
       tOfClosestPoint = beziers[i].closestPointTo(robotPose.location);
       closestPoint = beziers[i].getValue(tOfClosestPoint);
@@ -111,9 +113,18 @@ void move(directionType d, int count, double initAdherence, ...) {
 
       printf("totalError: %f, powerLeft: %f, powerRight: %f, lengthLeft: %f\n", totalError, powerLeft, powerRight, beziers[i].lengthleft(tOfClosestPoint));
       wait(10, msec);
-    } while(beziers[i].lengthleft(tOfClosestPoint) > 1);
+    } while(beziers[i].lengthleft(tOfClosestPoint) > 2);
   }
-
+  lDrive.stop(brake);
+  rDrive.stop(brake);
+  Brain.Screen.setPenColor(orange);
+  for (int i = 0; i < visited.size() - 1; i++) {
+    Brain.Screen.drawLine(visited[i].x, visited[i].y, visited[i+1].x, visited[i+1].y);
+  }
+  Brain.Screen.setPenColor(white);
+  for (int i = 0; i < count; i++) {
+    beziers[i].display(20);
+  }
 
 }
 
