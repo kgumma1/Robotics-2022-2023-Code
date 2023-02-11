@@ -4,8 +4,8 @@ using namespace vex;
 
 #define wheelCirc 2.75 * M_PI 
 #define sideDist 1.75
-#define backDist 12.75
-#define errorPerRotation 2.5
+#define backDist 4.125
+#define errorPerRotation 1.7
 
 
 double globalX;
@@ -26,6 +26,8 @@ void displayTracking() {
   for (int i = 1; i < 6; i++) {
     Brain.Screen.drawLine(240, 24 * i / 144.0 * 240, 480, 24 * i / 144.0 * 240);
   }
+
+  Brain.Screen.drawLine(240, 240, 480, 0);
 
   Brain.Screen.drawCircle(240 + globalX / 144.0 * 240, 240 - (globalY / 144.0 * 240), 5, orange);
 }

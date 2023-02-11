@@ -91,7 +91,8 @@ void autonomous(void) {
   //twoRoller();
   //farRoller();
   //roller();
-  testing();
+  //testing();
+  skills();
   //winPoint();
   //halfWP();
   // ..........................................................................

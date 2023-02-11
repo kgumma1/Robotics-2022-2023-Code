@@ -4,6 +4,47 @@
 
 using namespace vex;
 
+
+void Turn(double ang, double maxSpeed, double precision = 0.5) {
+  double turnkP = 0.27;
+  double turnkI = 0.01;
+  double turnkD = 2.2;
+
+  double angleError;
+  double prevAngleError;
+  double derivError;
+  double intError = 0;
+  double output;
+
+  do {
+
+      angleError = getAngleDiff(globalAngle, ang);
+
+      derivError = angleError - prevAngleError;
+
+      if (fabs(turnkD * derivError) < 0.2) {
+        intError = angleError + intError;
+      }
+      if (fabs(turnkD * derivError) > 0.5) {
+        intError = 0;
+      }
+      
+      output = angleError * turnkP + intError * turnkI + derivError * turnkD;
+      output = fabs(output) > maxSpeed ? maxSpeed : output;
+
+      prevAngleError = angleError;
+
+      lDrive.spin(fwd, output, volt);
+      rDrive.spin(fwd, -output, volt);
+
+      //printf("output = %f, error = %f, derivError = %f\n", output, angleError, derivError);
+
+      wait(10, msec);
+  } while(fabs(angleError) > precision);
+  lDrive.stop(brake);
+  rDrive.stop(brake);
+}
+
 class State : public Pose {
   public:
     double maxSpeed;
@@ -63,10 +104,10 @@ void move(directionType d, int count, double initAdherence, ...) {
 
   double maxSpeed;
 
-  double kAngle = dir == 1 ? 0.5 : 1.2;
-  double kCross = dir == 1 ? 3 : 5;
+  double kAngle = dir == 1 ? 0.5 : 0.5;
+  double kCross = dir == 1 ? 5 : 5;
 
-  double kP = 2.3;
+  double kP = 2.7;
   double kI = 0;
   double kD = 0;
 
@@ -102,9 +143,11 @@ void move(directionType d, int count, double initAdherence, ...) {
 
       Brain.Screen.printAt(5, 120, "PowLeft:  %.3f", powerLeft);
       Brain.Screen.printAt(5, 140, "PowRight: %.3f", powerRight);
-      Brain.Screen.printAt(5, 160, "AngC: %.3f", angleError);
-      Brain.Screen.printAt(5, 180, "CrossC: %.3f", crossTrackError);
-      Brain.Screen.printAt(5, 200, "PointAng: %.3f", beziers[i].getAngle(tOfClosestPoint));
+      Brain.Screen.printAt(5, 160, "AngE: %.3f", angleError);
+      Brain.Screen.printAt(5, 180, "AngC: %.3f", 0.064 * fabs(powerLeft) * kAngle * -angleError);
+      Brain.Screen.printAt(5, 200, "CrossE: %.3f", crossTrackError);
+      Brain.Screen.printAt(5, 220, "CrossC: %.3f", kCross * crossTrackError);
+      Brain.Screen.printAt(5, 240, "PointAng: %.3f", beziers[i].getAngle(tOfClosestPoint));
       
       
       lDrive.spin(fwd, powerLeft / 100.0 * 12, volt);
@@ -115,8 +158,9 @@ void move(directionType d, int count, double initAdherence, ...) {
       wait(10, msec);
     } while(beziers[i].lengthleft(tOfClosestPoint) > 2);
   }
-  lDrive.stop(brake);
-  rDrive.stop(brake);
+
+  Turn(states[count].angle, states[count].maxSpeed, 1);
+
   Brain.Screen.setPenColor(orange);
   for (int i = 0; i < visited.size() - 1; i++) {
     Brain.Screen.drawLine(visited[i].x, visited[i].y, visited[i+1].x, visited[i+1].y);
@@ -125,6 +169,10 @@ void move(directionType d, int count, double initAdherence, ...) {
   for (int i = 0; i < count; i++) {
     beziers[i].display(20);
   }
+
+}
+
+void spinRoller() {
 
 }
 
