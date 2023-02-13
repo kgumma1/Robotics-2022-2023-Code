@@ -107,7 +107,7 @@ void move(directionType d, int count, double initAdherence, ...) {
   double kAngle = dir == 1 ? 0.5 : 0.5;
   double kCross = dir == 1 ? 5 : 5;
 
-  double kP = 2.7;
+  double kP = 2.8;
   double kI = 0;
   double kD = 0;
 

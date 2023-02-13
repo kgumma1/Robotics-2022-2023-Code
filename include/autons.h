@@ -17,15 +17,31 @@ void testing() {
 
 
   //inertialSensor.setHeading(180, deg);
+
+  inertialSensor.calibrate();
+  while (inertialSensor.isCalibrating()) {
+    wait(5, msec);
+  }
+    globalX = 3 TILE + LEFT_TO_CENTER + TILE_EDGE;
+  globalY = 1 TILE - (TILE_EDGE + TOP_TO_CENTER);
+  wait(1, sec);
+
     printf("WORKING%d\n", 1);
   vex::task track = vex::task(startTracking);
       double initSens = 0.93;
     double sensInc = -0.0001;
     wait(1, sec);
+
   printf("WORKING%d\n", 1);
-    globalX = 3 TILE + LEFT_TO_CENTER + TILE_EDGE;;
-  globalY = 3 TILE - (TILE_EDGE + TOP_TO_CENTER);
+
   int speed = 20;
+  move(forward, 1, 10, State(5 TILE + LEFT_TO_CENTER + TILE_EDGE, 3 TILE - (TILE_EDGE + TOP_TO_CENTER), 50, 20));
+  wait(2000, msec);
+  Turn(0, 100);
+  wait(2000, msec);
+  move(reverse, 1, 10, State(3 TILE + LEFT_TO_CENTER + TILE_EDGE, 1 TILE - (TILE_EDGE + TOP_TO_CENTER), 50, 20));
+  wait(2000, msec);
+  Turn(0, 100);
   //move(forward, 3, 20, State(50, 30, 160, 30, speed), State(20, 30, 0, 15, speed), State(0, 70, -30, 40, speed));
   //move(reverse, 3, 40, State(20, 30, 0, 15, 20), State(50, 30, 160, 30, 20), State(0, 0, 0, 20, 20));
 
@@ -249,32 +265,35 @@ void skills() {
   wait(2000, msec);
 
   // reverse to shooting position
-  move(reverse, 1, 40, State(22, 3 TILE, 5, 0.001, 100));
+  move(reverse, 1, 40, State(22, 3 TILE, 5, 5));
   wait(2000, msec);
   
   // get line discs
   Turn(110, 100, 2);
     wait(2000, msec);
 
-  move(forward, 2, 4, State(1.25 TILE, 2.75 TILE, 60, 3, 25), State(2.5 TILE, 3.5 TILE, 45, 30, 50));
+  move(forward, 2, 4, State(1.75 TILE, 3 TILE, 45, 12, 25), State(2.5 TILE, 3.5 TILE, 45, 22, 50));
   wait(2000, msec);
   Turn(315, 100);
   wait(2000, msec);
 
   // get rest of low goal discs
-  move(forward, 1, 0.001, State(2 TILE + 8, 5.35 TILE, 270, 0.001, 50));
+  move(forward, 1, 0.001, State(2 TILE + 7.5, 5 TILE + 12, 260, 0.001, 50));
   wait(2000, msec);
   // match load position
   move(reverse, 1, 0.001, State(3 TILE, 5.7 TILE, 270, 0.001));
   wait(2000, msec);
   // intake opponent 3 stack
+  //Turn(145, 100);
+  wait(2000, msec);
   move(forward, 1, 3, State(3.5 TILE, 4.5 TILE, 135, 10, 50));
   wait(2000, msec);
+
   // Turn + shoot
   Turn(290, 100);
   wait(2000, msec);
   // Get to right roller
-  move(reverse, 1, 40, State(5.5 TILE, 4.38 TILE, 270, 5));
+  move(reverse, 1, 40, State(5.35 TILE, 4.45 TILE, 270, 3, 70));
   wait(2000, msec);
   // intake far center 3-stack
   move(forward, 1, 0.001, State(4.5 TILE, 4.5 TILE, 270, 3));
@@ -283,21 +302,21 @@ void skills() {
   move(reverse, 1, 5, State(5 TILE, 5.5 TILE, 180, 10));
   wait(2000, msec);
   // go to shoot discs in robot
-  move(forward, 1, 10, State(5.3 TILE, 3.5 TILE, 190, 20));
+  move(forward, 1, 10, State(5.3 TILE, 3.2 TILE, 190, 20));
   wait(2000, msec);
   // intake horizontal low goal line (close low goal)
-  move(forward, 1, 5, State(3.75 TILE, 2 TILE + 10, 270, 40, 50));
+  move(forward, 1, 5, State(3.75 TILE, 2 TILE + 10, 270, 45, 25));
   wait(2000, msec);
   // go to shoot low goal discs
   move(reverse, 1, 0.001, State(5 TILE + 6, 3 TILE, 185, 0.5));
   wait(2000, msec);
   // intake second line
-  move(forward, 2, 0.001, State(4.5 TILE, 3.5 TILE, 280, 0.001, 25), State(3.5 TILE, 2.5 TILE, 225, 30));
+  move(forward, 2, 0.001, State(4.25 TILE, 3 TILE, 225, 0.001, 25), State(3.5 TILE, 2.5 TILE, 225, 30));
   wait(2000, msec);
   Turn(135, 100);
   wait(2000, msec);
   // intake vertical low goal line (close low goal)
-  move(forward, 1, 0.001, State(3.5 TILE, 0.5 TILE, 90, 0.001));
+  move(forward, 1, 0.001, State(3.55 TILE, 0.5 TILE, 90, 0.001));
   wait(2000, msec);
   // move to match load position
   move(reverse, 1, 0.001, State(3 TILE, 0.5 TILE, 90, 0.001));
@@ -309,7 +328,7 @@ void skills() {
   Turn(110, 100);
   wait(2000, msec);
   // move to roller
-  move(reverse, 1, 50, State(0.5 TILE, 1.5 TILE, 90, 20));
+  move(reverse, 1, 50, State(0.75 TILE, 1.25 TILE, 90, 20));
   wait(2000, msec);
   // go to endgame position
   move(forward, 1, 15, State(1 TILE, 1 TILE, 45, 15));
