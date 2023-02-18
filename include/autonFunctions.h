@@ -109,7 +109,7 @@ void move(directionType d, int count, double initAdherence, ...) {
   double kAngle = dir == 1 ? 0.5 : 0.5;
   double kCross = dir == 1 ? 5 : 5;
 
-  double kP = 3.5;
+  double kP = 3.7;
   double kI = 0;
   double kD = 0;
 
@@ -284,10 +284,12 @@ int resetIntakeSpeed() {
   return 1;
 }
 
+double intakeThreshold = 6;
+
 int maintain3Discs() {
   while (true) {
-    while (topIntakeSensor.reflectivity() - 6 <= topIntakeSensorInit) {
-      if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - 4 > bottomIntakeSensorInit) {
+    while (topIntakeSensor.reflectivity() - intakeThreshold <= topIntakeSensorInit) {
+      if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - intakeThreshold > bottomIntakeSensorInit) {
         intake_roller.spin(reverse, 0, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
@@ -299,8 +301,8 @@ int maintain3Discs() {
     }
     printf("discCount = %d\n", discCount);
     printf("discsIntaked = %d\n", discsIntaked);
-    while (topIntakeSensor.reflectivity() - 6 > topIntakeSensorInit) {
-      if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - 4 > bottomIntakeSensorInit) {
+    while (topIntakeSensor.reflectivity() - intakeThreshold > topIntakeSensorInit) {
+      if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - intakeThreshold > bottomIntakeSensorInit) {
         intake_roller.spin(reverse, 0, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
@@ -328,9 +330,11 @@ int flywheelPID() {
   double output = 12;
   double outputChange = 0;
   vex::timer shotTimer = vex::timer();
+  vex::timer matchLoadTimer = vex::timer();
   int errorCount = 0;
 
   vex::task startShotCount = vex::task(trackDiscsShot);
+  
   do {
     error = targetSpeed - (flywheel.velocity(rpm) * 6);
     if (targetSpeed == 0) {
@@ -358,7 +362,17 @@ int flywheelPID() {
     if (flywheelSensor.reflectivity() - 4 > flywheelSensorInit) {
       output = 12;
     }
+
+    if (matchLoadSensor.reflectivity() - 4 > matchLoadSensorInit) {
+      matchLoadTimer.reset();
+    }
+    if (matchLoadTimer.time() < 400) {
+      output = 12;
+    }
+
     flywheel.spin(fwd, output, volt);
+
+
 
     if (fabs(error) < 50) {
       errorCount++;
@@ -396,7 +410,7 @@ int flywheelPID() {
 
 
     //printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
-    //printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
+    printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
     //printf("discs = %d\n", discsIntaked);
     wait(10, msec);
   } while (true);

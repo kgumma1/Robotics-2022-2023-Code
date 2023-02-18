@@ -20,12 +20,16 @@ vex::task runWithDelay(int (*callback)(), double timeMsec) {
 }
 
 void testing() {
-  intake_roller.spin(forward, 100, pct);
+  intakeSpeed = 0;
+  vex::task runIntake = vex::task(maintain3Discs);
+
+  wait(10000, sec);
 
 
   vex::task flywheelOn = vex::task(flywheelPID);
-  adjustFPID(0.00006, 0.00005, 0, 0.004, 0.00005, 0);
-  queueDiscs(0, 2000, 0.5);
+  adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
+  queueDiscs(0, 2900, 0.5);
+
   wait(10000, sec);
 
 
@@ -85,16 +89,22 @@ void skills() {
   queueDiscs(0, 2600, 0.5);
   discsIntaked = 2; //2
   intake_roller.spin(forward, 100, pct);
-  lDrive.spin(reverse, 100, pct);
-  rDrive.spin(reverse, 100, pct);
+  //lDrive.spin(reverse, 100, pct); _________________________________________________________________________________________
+  //rDrive.spin(reverse, 100, pct);
   rightRollerSensor.setLightPower(100);
   leftRollerSensor.setLightPower(100);
   spinRoller(true);
+  
   vex::task runIntake = vex::task(maintain3Discs);
   // move to preload shoot position
   
   endOfMovePrecision = 2;
-  move(forward, 2, 0.001, State(1 TILE, 1 TILE, 315, 4, 50), State(17, 3 TILE + 4, 7, 3, 100));
+  move(forward, 1, 0.001, State(0.7 TILE, 1 TILE, 315, 0.001, 50));
+  Turn(90, 100);
+  //lDrive.spin(reverse, 100, pct);
+  //rDrive.spin(reverse, 100, pct);
+  spinRoller(true);
+  move(forward, 1, 2, State(17, 3 TILE + 4, 7, 3, 100));
   queueDiscs(3);
   while (numQueued() > 0) {
     printf("shooting %d\n", 1);
@@ -126,17 +136,19 @@ void skills() {
   }
 
   // get rest of low goal discs (vertical)
-  move(forward, 2, 0.001, State(2 TILE + 11, 4 TILE - 11.75, 0, 1, 20), State(2 TILE + 6, 5 TILE + 12, 0, 30, 30));
+  move(forward, 2, 0.001, State(2 TILE + 11, 4 TILE - 11.75, 0, 1, 20), State(2 TILE + 6, 5 TILE + 11, 0, 30, 30));
   Turn(260, 100);
   queueDiscs(3);
   while (numQueued() > 0) {
     wait(10, msec);
   }
-  queueDiscs(0, 3000);
+  queueDiscs(0, 2900);
+  adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
   // match load position
-  move(reverse, 1, 3, State(3 TILE + 2, 5 TILE + 18, 270, 3));
+  move(reverse, 1, 3, State(3 TILE + 2, 5 TILE + 12, 270, 3));
   
-  wait(4000, msec);
+  wait(7000, msec);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.00005, 0);
   queueDiscs(0, 2600);
   // intake opponent 3 stack
   //Turn(145, 100);
@@ -155,57 +167,46 @@ void skills() {
   //wait(2000, msec);
   // Get to right roller
   //move(reverse, 2, 0.001, State(4 TILE + 5, 4 TILE + 2, 270, 10, 30), State(5.35 TILE, 4.45 TILE, 270, 10, 70));
-  move(reverse, 2, 0.001, State(4 TILE, 5 TILE, 270, 10, 30), State(5 TILE, 5 TILE, 270, 10, 70));
-  lDrive.spin(reverse, 100, pct);
-  rDrive.spin(reverse, 100, pct);
+  move(reverse, 2, 0.001, State(4 TILE, 5 TILE, 270, 10, 30), State(5 TILE + 5, 5 TILE, 270, 10, 70));
+  
+  //lDrive.spin(reverse, 100, pct); ____________________________________________________________________________________________________
+  //rDrive.spin(reverse, 100, pct);
   // spinRoller(false);
   spinRoller(true);
   // intake far center 3-stack
-  intakeLift.set(true);
+  runIntake.suspend();
+  intake_roller.spin(reverse, 100, pct);
   move(forward, 1, 0.001, State(4 TILE + 6, 4.5 TILE, 270, 3));
-  intakeLift.set(false);
-  wait(2000, msec);
+
   // move to far roller
   move(reverse, 1, 0.001, State(4 TILE + 9, 5 TILE + 12, 180, 10));
-  lDrive.spin(reverse, 100, pct);
-  rDrive.spin(reverse, 100, pct);
+  runIntake.resume();
+  //lDrive.spin(reverse, 100, pct); ____________________________________________________________________________________________________________________
+  //rDrive.spin(reverse, 100, pct);
   spinRoller(true);
+  move(forward, 1, 2, State(5 TILE, 5 TILE, 225, 5, 100));
+  expansion.set(true);
   // go to shoot discs in robot
-  move(forward, 1, 20, State(5.3 TILE, 3.2 TILE, 190, 20));
-  queueDiscs(3);
-  while (numQueued() > 0) {
-    wait(10, msec);
-  }
-
-  // intake horizontal low goal line (close low goal)
-  move(forward, 2, 0.001, State(5 TILE + 9, 2 TILE + 16, 270, 0.001, 30), State(3 TILE + 18, 2 TILE + 11, 270, 7, 40));
-
-  // go to shoot low goal discs
-  move(reverse, 1, 0.001, State(5 TILE + 6, 3 TILE, 185, 0.5));
-  queueDiscs(3);
-  while (numQueued() > 0) {
-    wait(10, msec);
-  }
-
+ 
   // intake second line
-  Turn(280, 100);
-  move(forward, 2, 0.001, State(4 TILE + 6, 3 TILE + 6, 225, 6, 30), State(3.5 TILE, 2.5 TILE, 225, 3));
+/* 
+  move(forward, 3, 40, State(4 TILE + 6, 3 TILE + 6, 225, 6, 100), State(3.5 TILE, 2.5 TILE, 225, 3), State(3.5 TILE, 0.65 TILE, 90, 20, 30));
 
-  Turn(135, 100);
+  Turn(80, 100);
   queueDiscs(3);
   while (numQueued() > 0) {
     wait(10, msec);
   }
+  queueDiscs(0, 2900);
+  adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
+  move(reverse, 1, 5, State(3 TILE, 0.5 TILE, 90, 5, 100));
 
-  // intake vertical low goal line (close low goal)
-  move(forward, 2, 0.001, State(3 TILE + 15, 2 TILE + 3, 180, 5, 30), State(3 TILE + 15, 0.5 TILE, 90, 0.001, 30));
-  queueDiscs(3);
-  while (numQueued() > 0) {
-    wait(10, msec);
-  }
+
+  wait(7000, msec);
+  adjustFPID(0.00005, 0.00005, 0, 0.004, 0.00005, 0);
+  queueDiscs(0, 2600);
 
   // move to match load position
-  move(reverse, 1, 0.001, State(3 TILE, 0.5 TILE, 90, 0.001));
 
   // move to and intake own 3 stack
   //move(forward, 1, 3, State(2.5 TILE, 1.5 TILE, 315, 10));
@@ -215,8 +216,8 @@ void skills() {
 
   // move to roller
   move(reverse, 1, 50, State(0.75 TILE, 1 TILE + 3, 90, 20));
-  lDrive.spin(reverse, 100, pct);
-  rDrive.spin(reverse, 100, pct);
+  //lDrive.spin(reverse, 100, pct);
+  //rDrive.spin(reverse, 100, pct);
   spinRoller(true);
   // go to endgame position
   move(forward, 1, 15, State(1 TILE, 1 TILE, 45, 15));
@@ -226,7 +227,7 @@ void skills() {
   while(true) {
     displayTracking();
     wait(10, msec);
-  }
+  }*/
 }
 
 void winPoint9(bool redAlliance) {
