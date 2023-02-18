@@ -16,13 +16,22 @@ void displayInfo() {
   Brain.Screen.printAt(5, 180, "Flywheel:         %.0f", flywheel.temperature(vex::temperatureUnits::celsius));
 }
 
+void matchLoadTest() {
+  while (true) {
+    if (Controller.ButtonL2.pressing()) {
+      flywheel.spin(forward, Controller.Axis2.position(), pct);
+    }
+    intake_roller.spin(forward, 100, pct);
+  }
+}
+
 double straightExpFunction(double d) {
   double a = 4;
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
 double turnExpFunction(double d) {
-  double a = 6;
+  double a = 8;
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
@@ -39,7 +48,7 @@ void drive() {
   int intRollSpeed = 0;
 
   vex::timer basketDelayTimer = vex::timer();
-  double basketDelay = 0.1;
+  double basketDelay = 0;
 
   vex::timer shotTimer = vex::timer();
   vex::timer exp = vex::timer();
@@ -53,7 +62,7 @@ void drive() {
 
 
     double Axis3Adjusted = fabs(Controller.Axis3.position()) > 5 ? straightExpFunction(Controller.Axis3.position()) : 0;
-    double Axis1Adjusted = fabs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.9) : 0;
+    double Axis1Adjusted = fabs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.95) : 0;
 
 
     double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
@@ -68,10 +77,10 @@ void drive() {
     // FLYWHEEL // 
     double speedUpDelay = Controller.ButtonL2.pressing() ? 0.3 : (Controller.ButtonL1.pressing() ? 0.00 : 0.3);
     
-    if ((flywheel.velocity(rpm) * 6 < 2450 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
+    if ((flywheel.velocity(rpm) * 6 < 2350 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
       flywheel.spin(forward, Controller.ButtonL2.pressing() ? 12 : 12, volt);
     } else if (!(expanded || expanding)) {
-      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8 : 8, volt);
+      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.75 : 8.75, volt);
     }
     printf("flywheel = %f\n", flywheel.velocity(rpm) * 6);
 
@@ -82,7 +91,7 @@ void drive() {
       shooting = true;
       
       angleChanger.set(false);
-      basket.set(true);
+      compressionBar.set(true);
       
       if (basketDelayTimer.value() > basketDelay) {
         intake_roller.spin(reverse, 100, pct);
@@ -94,7 +103,7 @@ void drive() {
       shooting = true;
 
       angleChanger.set(true);
-      basket.set(true);
+      compressionBar.set(true);
 
       if (basketDelayTimer.value() > basketDelay) {
         intake_roller.spin(reverse, 100, pct);
@@ -105,7 +114,7 @@ void drive() {
     } else {
       basketDelayTimer.reset();
       shooting = false;
-      basket.set(false);
+      compressionBar.set(false);
     }
 
 

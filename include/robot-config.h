@@ -23,6 +23,7 @@ extern triport Expander;
 extern line bottomIntakeSensor;
 extern line topIntakeSensor;
 extern line flywheelSensor;
+extern line matchLoadSensor;
 
 extern encoder leftEncoder;
 extern encoder backEncoder;
@@ -32,7 +33,7 @@ extern optical leftRollerSensor;
 extern optical rightRollerSensor;
 
 extern digital_out angleChanger;
-extern digital_out basket;
+extern digital_out compressionBar;
 extern digital_out intakeLift;
 extern digital_out expansion;
 
@@ -42,6 +43,7 @@ extern digital_out expansion;
 extern double topIntakeSensorInit;
 extern double bottomIntakeSensorInit;
 extern double flywheelSensorInit;
+extern double matchLoadSensorInit;
 extern double globalX;
 extern double globalY;
 extern double globalAngle;

@@ -23,6 +23,7 @@ competition Competition;
 double topIntakeSensorInit;
 double bottomIntakeSensorInit;
 double flywheelSensorInit;
+double matchLoadSensorInit;
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -38,15 +39,18 @@ void calibrateLineSensors() {
   topIntakeSensorInit = 0;
   bottomIntakeSensorInit = 0;
   flywheelSensorInit = 0;
+  matchLoadSensorInit = 0;
   for (int i = 0; i < 10; i++) {
     topIntakeSensorInit += topIntakeSensor.reflectivity();
     bottomIntakeSensorInit += bottomIntakeSensor.reflectivity();
     flywheelSensorInit += flywheelSensor.reflectivity();
+    matchLoadSensorInit += matchLoadSensor.reflectivity();
     wait(20, msec);
   }
   topIntakeSensorInit /= 10.0;
   bottomIntakeSensorInit /= 10.0;
   flywheelSensorInit /= 10.0;
+  matchLoadSensorInit /= 10.0;
 }
 
 void calibrateIntertial()
@@ -59,7 +63,7 @@ void calibrateIntertial()
   Controller.Screen.print("...");
   while (inertialSensor.isCalibrating())
   {
-    vex::task::sleep(20);
+    wait(10, msec);
   }
 
   Controller.Screen.print("Done");
@@ -88,12 +92,14 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
+
   //twoRoller();
   //farRoller();
   //roller();
-  //testing();
-  skills();
-  //winPoint();
+  testing();
+  //skills();
+  //winPoint6(true);
+  //rightSide5(false);
   //halfWP();
   // ..........................................................................
   // Insert autonomous user code here.
@@ -112,6 +118,7 @@ void autonomous(void) {
 
 void usercontrol(void) {
   // User control code here, inside the loop
+  //matchLoadTest();
   drive();
   //testing();
   // testing without comp switch code

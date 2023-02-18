@@ -9,7 +9,7 @@ controller Controller = controller(primary);
 
 
 motor flywheel = motor(PORT10, ratio6_1, false);
-motor intake_roller = motor(PORT1, ratio6_1, false);
+motor intake_roller = motor(PORT1, ratio6_1, true);
 
 motor RFDrive = motor (PORT16, ratio6_1, false);
 motor RMDrive = motor(PORT19, ratio6_1, false);
@@ -25,19 +25,20 @@ motor_group lDrive = motor_group(LFDrive, LMDrive, LBDrive);
 triport Expander = triport(PORT15);
 line bottomIntakeSensor = line(Expander.B);
 line topIntakeSensor = line(Expander.A);
-line flywheelSensor = line(Brain.ThreeWirePort.F);
+line flywheelSensor = line(Brain.ThreeWirePort.E);
+line matchLoadSensor = line(Brain.ThreeWirePort.C);
 
 encoder leftEncoder = encoder(Brain.ThreeWirePort.A);
 encoder backEncoder = encoder(Brain.ThreeWirePort.G);
 
-inertial inertialSensor = inertial(PORT14);
-optical leftRollerSensor = optical(PORT3);
-optical rightRollerSensor = optical(PORT4);
+inertial inertialSensor = inertial(PORT7);
+optical leftRollerSensor = optical(PORT6);
+optical rightRollerSensor = optical(PORT9);
 
 digital_out angleChanger = digital_out(Expander.F);
-digital_out basket = digital_out(Expander.G);
+digital_out compressionBar = digital_out(Brain.ThreeWirePort.D);
 digital_out intakeLift = digital_out(Expander.H);
-digital_out expansion = digital_out(Brain.ThreeWirePort.D);
+digital_out expansion = digital_out(Brain.ThreeWirePort.F);
 
 bool RemoteControlCodeEnabled = true;
 

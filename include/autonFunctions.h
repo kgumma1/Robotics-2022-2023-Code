@@ -6,9 +6,9 @@ using namespace vex;
 
 
 void Turn(double ang, double maxSpeed, double precision = 0.5) {
-  double turnkP = 0.27;
+  double turnkP = 0.3;
   double turnkI = 0.01;
-  double turnkD = 2.2;
+  double turnkD = 2.3 + fabs(getAngleDiff(globalAngle, ang) / 900.0);
 
   double angleError;
   double prevAngleError;
@@ -37,7 +37,7 @@ void Turn(double ang, double maxSpeed, double precision = 0.5) {
       lDrive.spin(fwd, output, volt);
       rDrive.spin(fwd, -output, volt);
 
-      //printf("output = %f, error = %f, derivError = %f\n", output, angleError, derivError);
+      printf("output = %f, error = %f, derivError = %f\n", output, angleError, derivError);
 
       wait(10, msec);
   } while(fabs(angleError) > precision);
@@ -61,6 +61,8 @@ class State : public Pose {
       this->maxSpeed = maxSpeed;
     }
 };
+
+double endOfMovePrecision = 2;
 
 void move(directionType d, int count, double initAdherence, ...) {
 
@@ -107,7 +109,7 @@ void move(directionType d, int count, double initAdherence, ...) {
   double kAngle = dir == 1 ? 0.5 : 0.5;
   double kCross = dir == 1 ? 5 : 5;
 
-  double kP = 2.8;
+  double kP = 3.5;
   double kI = 0;
   double kD = 0;
 
@@ -159,7 +161,7 @@ void move(directionType d, int count, double initAdherence, ...) {
     } while(beziers[i].lengthleft(tOfClosestPoint) > 2);
   }
 
-  Turn(states[count].angle, states[count].maxSpeed, 1);
+  Turn(states[count].angle, states[count].maxSpeed, endOfMovePrecision);
 
   Brain.Screen.setPenColor(orange);
   for (int i = 0; i < visited.size() - 1; i++) {
@@ -172,8 +174,42 @@ void move(directionType d, int count, double initAdherence, ...) {
 
 }
 
-void spinRoller() {
+int spinRoller(bool left, bool redAlliance = true, double timeout = 2000) {
+  vex::timer rollerTimer = vex::timer();
 
+  if (left) {
+    while ((!leftRollerSensor.isNearObject()) && rollerTimer.time() < timeout) {
+      wait(10, msec);
+    }
+    if (redAlliance) {
+      while ((!(leftRollerSensor.hue() > 180 && leftRollerSensor.hue() < 300)) && rollerTimer.time() < timeout) {
+        wait(10, msec);
+
+      }
+    } else {
+      while ((!(leftRollerSensor.hue() > 330 || leftRollerSensor.hue() < 30)) && rollerTimer.time() < timeout) {
+        wait(10, msec);
+
+      }
+    }
+  
+  } else {
+    while ((!rightRollerSensor.isNearObject()) && rollerTimer.time() < timeout) {
+      wait(10, msec);
+    }
+    if (redAlliance) {
+      while ((!(rightRollerSensor.hue() > 180 && rightRollerSensor.hue() < 300)) && rollerTimer.time() < timeout) {
+        wait(10, msec);
+      }
+    } else {
+      while ((!(rightRollerSensor.hue() > 330 || rightRollerSensor.hue() < 30)) && rollerTimer.time() < timeout) {
+        wait(10, msec);
+
+      }
+    }
+  }
+  
+  return 1;
 }
 
 
@@ -184,6 +220,8 @@ double shotD = 0.2;
 double maxShotT = 60;
 int discsShotCount = 0;
 
+bool volley = false;
+
 
 void resetDiscCount() {
   discCount = 0;
@@ -193,11 +231,12 @@ int numQueued() {
   return discCount;
 }
 
-int queueDiscs(int n, double target = -1, double shotDelay = -1, double maxShotTime = -1) {
+int queueDiscs(int n, double target = -1, double shotDelay = -1, double maxShotTime = -1, bool setVolley = true) {
   discCount += n;
   targetSpeed = target > 0 ? target : targetSpeed;
   shotD = shotDelay > 0 ? shotDelay : shotD;
   maxShotT = maxShotTime > 0 ? maxShotTime : maxShotT;
+  volley = setVolley;
   return discCount;
 }
 
@@ -237,16 +276,22 @@ int trackDiscsShot() {
   return 1;
 }
 
+double intakeSpeed = 100;
 
+int resetIntakeSpeed() {
+  intakeSpeed = 100;
+  intake_roller.spin(forward, 100, pct);
+  return 1;
+}
 
 int maintain3Discs() {
   while (true) {
     while (topIntakeSensor.reflectivity() - 6 <= topIntakeSensorInit) {
       if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - 4 > bottomIntakeSensorInit) {
-        intake_roller.spin(reverse, 100, pct);
+        intake_roller.spin(reverse, 0, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
-        intake_roller.spin(forward, 100, pct);
+        intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
       printf("discCount = %d\n", discCount);
@@ -256,20 +301,22 @@ int maintain3Discs() {
     printf("discsIntaked = %d\n", discsIntaked);
     while (topIntakeSensor.reflectivity() - 6 > topIntakeSensorInit) {
       if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - 4 > bottomIntakeSensorInit) {
-        intake_roller.spin(reverse, 100, pct);
+        intake_roller.spin(reverse, 0, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
-        intake_roller.spin(forward, 100, pct);
+        intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
       printf("discCount = %d\n", discCount);
       printf("discsIntaked = %d\n", discsIntaked);
     }
-          printf("discCount = %d\n", discCount);
-      printf("discsIntaked = %d\n", discsIntaked);
+    printf("discCount = %d\n", discCount);
+    printf("discsIntaked = %d\n", discsIntaked);
     discsIntaked++;
   }
 }
+
+bool volleying = false;
 
 int flywheelPID() {
 
@@ -306,7 +353,11 @@ int flywheelPID() {
 
   
     output = output + outputChange >= 12 ? 12 : output + outputChange;
+    output = volleying ? 12 : output;
     //output = 7.2;
+    if (flywheelSensor.reflectivity() - 4 > flywheelSensorInit) {
+      output = 12;
+    }
     flywheel.spin(fwd, output, volt);
 
     if (fabs(error) < 50) {
@@ -314,9 +365,19 @@ int flywheelPID() {
     } else {
       errorCount = 0;
     }
+    if (discsIntaked == 0) {
+      discCount = 0;
+    }
 
     if (((errorCount >= 2 && shotTimer.value() > shotD) || shotTimer.value() > maxShotT) && discCount > 0) {
-      intake_roller.startRotateFor(reverse, 500, deg, 100, velocityUnits::pct);
+      
+      if (volley) {
+        intake_roller.spin(reverse, 100, percent);
+        volleying = true;
+      } else {
+        intake_roller.startRotateFor(reverse, 560, deg, 100, velocityUnits::pct);
+      }
+
       shotTimer.reset();
       errorCount = 0;
     } /*
@@ -325,9 +386,10 @@ int flywheelPID() {
       shotTimer.reset();
     }*/
     if (discCount > 0) {
-      basket.set(true);
+      compressionBar.set(true);
     } else {
-      basket.set(false);
+      compressionBar.set(false);
+      volleying = false;
     }
     //printf("discs = %d\n", discCount);
     
@@ -335,7 +397,7 @@ int flywheelPID() {
 
     //printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
     //printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
-    printf("discs = %d\n", discsIntaked);
+    //printf("discs = %d\n", discsIntaked);
     wait(10, msec);
   } while (true);
   return 1;

@@ -2,7 +2,7 @@
 
 using namespace vex;
 
-#define wheelCirc 2.75 * M_PI 
+#define wheelCirc 2.73 * M_PI 
 #define sideDist 1.75
 #define backDist 4.5
 #define errorPerRotation 2.5
