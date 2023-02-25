@@ -331,7 +331,7 @@ void winPoint6(bool redAlliance) {
     wait(10, msec);
   }
   
-  queueDiscs(0, 3450, 0.5, -1, false);
+  queueDiscs(0, 3400, 0.5, -1, false);
 
   wait(200, msec);
   Turn(45, 100, 10);
@@ -345,7 +345,7 @@ void winPoint6(bool redAlliance) {
   endOfMovePrecision = 2;
  move(forward, 1, 1, State(5 TILE + 5, 4 TILE + 13, 276, 0.001));
   
-  queueDiscs(3, 3450, 0.5, 1.0, false);
+  queueDiscs(3, 3400, 0.5, 1.0, false);
   while (numQueued() > 0) {
     wait(10, msec);
   }
