@@ -284,13 +284,13 @@ int resetIntakeSpeed() {
   return 1;
 }
 
-double intakeThreshold = 6;
+double intakeThreshold = 4;
 
 int maintain3Discs() {
   while (true) {
     while (topIntakeSensor.reflectivity() - intakeThreshold <= topIntakeSensorInit) {
       if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - intakeThreshold > bottomIntakeSensorInit) {
-        intake_roller.spin(reverse, 0, pct);
+        intake_roller.spin(reverse, -intakeSpeed, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
         intake_roller.spin(forward, intakeSpeed, pct);
@@ -303,7 +303,7 @@ int maintain3Discs() {
     printf("discsIntaked = %d\n", discsIntaked);
     while (topIntakeSensor.reflectivity() - intakeThreshold > topIntakeSensorInit) {
       if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - intakeThreshold > bottomIntakeSensorInit) {
-        intake_roller.spin(reverse, 0, pct);
+        intake_roller.spin(reverse, -intakeSpeed, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
         intake_roller.spin(forward, intakeSpeed, pct);
@@ -360,13 +360,13 @@ int flywheelPID() {
     output = volleying ? 12 : output;
     //output = 7.2;
     if (flywheelSensor.reflectivity() - 4 > flywheelSensorInit) {
-      output = 12;
+      matchLoadTimer.reset();
     }
 
     if (matchLoadSensor.reflectivity() - 4 > matchLoadSensorInit) {
       matchLoadTimer.reset();
     }
-    if (matchLoadTimer.time() < 400) {
+    if (matchLoadTimer.time() < 500) {
       output = 12;
     }
 
@@ -389,7 +389,7 @@ int flywheelPID() {
         intake_roller.spin(reverse, 100, percent);
         volleying = true;
       } else {
-        intake_roller.startRotateFor(reverse, 560, deg, 100, velocityUnits::pct);
+        intake_roller.startRotateFor(reverse, 580, deg, 100, velocityUnits::pct);
       }
 
       shotTimer.reset();

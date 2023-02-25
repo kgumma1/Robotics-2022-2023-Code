@@ -80,7 +80,7 @@ void drive() {
     if ((flywheel.velocity(rpm) * 6 < 2350 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
       flywheel.spin(forward, Controller.ButtonL2.pressing() ? 12 : 12, volt);
     } else if (!(expanded || expanding)) {
-      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.75 : 8.75, volt);
+      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.5 : 8.5, volt);
     }
     printf("flywheel = %f\n", flywheel.velocity(rpm) * 6);
 
