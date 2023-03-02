@@ -98,11 +98,13 @@ void autonomous(void) {
   //roller();
   //testing();
   //skills();
-  winPoint6(true);
+  //winPoint6(true);
   //leftSide(true);
-  //leftSideCut(false);
+  //leftSafe(false);
+  leftSideCut(true);
   //rightSide5(false);
-  //rightMod(true);
+  //rightSide6(true);
+  //rightMod(false);
   //halfWP();
   // ..........................................................................
   // Insert autonomous user code here.

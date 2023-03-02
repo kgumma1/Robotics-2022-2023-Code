@@ -58,11 +58,11 @@ void drive() {
 
     // DRIVE //
     double initSens = 0.93;
-    double sensInc = -0.0001;
+    double sensInc = -0.00005;
 
 
     double Axis3Adjusted = fabs(Controller.Axis3.position()) > 5 ? straightExpFunction(Controller.Axis3.position()) : 0;
-    double Axis1Adjusted = fabs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.95) : 0;
+    double Axis1Adjusted = fabs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.93) : 0;
 
 
     double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
@@ -75,10 +75,10 @@ void drive() {
 
 
     // FLYWHEEL // 
-    double speedUpDelay = Controller.ButtonL2.pressing() ? 0.3 : (Controller.ButtonL1.pressing() ? 0.00 : 0.3);
+    double speedUpDelay = Controller.ButtonL2.pressing() ? 0.5 : (Controller.ButtonL1.pressing() ? 0.00 : 0.5);
     
     if ((flywheel.velocity(rpm) * 6 < 2350 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
-      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 12 : 12, volt);
+      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 10 : 10, volt);
     } else if (!(expanded || expanding)) {
       flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.5 : 8.5, volt);
     }
