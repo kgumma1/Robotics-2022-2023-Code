@@ -62,13 +62,11 @@ class State : public Pose {
     }
 };
 
-double endOfMovePrecision = 2;
+bool exitMove = false;
 
-void move(directionType d, int count, double initAdherence, ...) {
-
-  va_list statesInputList;
-  va_start(statesInputList, initAdherence);
-
+void move(va_list statesInputList, directionType d, int count, double initAdherence, double endOfMovePrecision, double timeout) {
+  exitMove = false;
+  
   State states[count + 1];
   Bezier beziers[count];
     
@@ -115,6 +113,8 @@ void move(directionType d, int count, double initAdherence, ...) {
 
   std::vector<Point> visited;
 
+  vex::timer exitTimer = vex::timer();
+
   
   for (int i = 0; i < count; i++) {
     totalLength -= beziers[i].lengthleft(0);
@@ -158,10 +158,12 @@ void move(directionType d, int count, double initAdherence, ...) {
 
       printf("totalError: %f, powerLeft: %f, powerRight: %f, lengthLeft: %f\n", totalError, powerLeft, powerRight, beziers[i].lengthleft(tOfClosestPoint));
       wait(10, msec);
-    } while(beziers[i].lengthleft(tOfClosestPoint) > 2);
+    } while(beziers[i].lengthleft(tOfClosestPoint) > 2 && exitTimer.time() < timeout && !exitMove);
+  }
+  if (exitTimer.time() < timeout && !exitMove) {
+    Turn(states[count].angle, states[count].maxSpeed, endOfMovePrecision);
   }
 
-  Turn(states[count].angle, states[count].maxSpeed, endOfMovePrecision);
 
   Brain.Screen.setPenColor(orange);
   for (int i = 0; i < visited.size() - 1; i++) {
@@ -173,6 +175,70 @@ void move(directionType d, int count, double initAdherence, ...) {
   }
 
 }
+
+void move(directionType d, int count, double initAdherence, ...) {
+  va_list statesInputList;
+  va_start(statesInputList, initAdherence);
+
+  move(statesInputList, d, count, initAdherence, 2, 60000);
+}
+
+void move(directionType d, int count, double initAdherence, double endOfMovePrecision, ...) {
+  va_list statesInputList;
+  va_start(statesInputList, endOfMovePrecision);
+
+  move(statesInputList, d, count, initAdherence, endOfMovePrecision, 60000);
+}
+
+
+void move(directionType d, int count, double initAdherence, double endOfMovePrecision, double timeout, ...) {
+  va_list statesInputList;
+  va_start(statesInputList, timeout);
+
+  move(statesInputList, d, count, initAdherence, endOfMovePrecision, timeout);
+}
+
+va_list moveParallelList;
+directionType parallelD;
+int parallelCount;
+double parallelInitAdherence;
+double parallelEndOfMovePrecision;
+double parallelTimeout;
+
+int parallelHandler() {
+  move(moveParallelList, parallelD, parallelCount, parallelInitAdherence, parallelEndOfMovePrecision,parallelTimeout);
+}
+
+vex::task moveParallel(directionType d, int count, double initAdherence, ...) {
+  va_start(moveParallelList, initAdherence);
+  parallelD = d;
+  parallelInitAdherence = initAdherence;
+  parallelEndOfMovePrecision = 2;
+  parallelTimeout = 60;
+  
+  return vex::task(parallelHandler);
+}
+
+vex::task moveParallel(directionType d, int count, double initAdherence, double endOfMovePrecision, ...) {
+  va_start(moveParallelList, endOfMovePrecision);
+  parallelD = d;
+  parallelInitAdherence = initAdherence;
+  parallelEndOfMovePrecision = endOfMovePrecision;
+  parallelTimeout = 60;
+
+  return vex::task(parallelHandler);
+}
+
+vex::task moveParallel(directionType d, int count, double initAdherence, double endOfMovePrecision, double timeout, ...) {
+  va_start(moveParallelList, timeout);
+  parallelD = d;
+  parallelInitAdherence = initAdherence;
+  parallelEndOfMovePrecision = endOfMovePrecision;
+  parallelTimeout = timeout;
+
+  return vex::task(parallelHandler);
+}
+
 
 int spinRoller(bool left, bool redAlliance = true, double timeout = 2000) {
   vex::timer rollerTimer = vex::timer();
@@ -416,3 +482,6 @@ int flywheelPID() {
   } while (true);
   return 1;
 }
+
+
+

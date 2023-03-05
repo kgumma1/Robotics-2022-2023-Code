@@ -35,6 +35,18 @@ double turnExpFunction(double d) {
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
+bool discAtBottom(int threshold = 8) {
+  return bottomIntakeSensor.reflectivity() - threshold > bottomIntakeSensorInit;
+}
+
+bool discAtTop(int threshold = 4) {
+  return topIntakeSensor.reflectivity() - threshold > topIntakeSensorInit;
+}
+
+bool discAtFlywheel(int threshold = 4) {
+  return flywheelSensor.reflectivity() - threshold > flywheelSensorInit;
+}
+
 void drive() {
 
   bool shooting = false;
@@ -50,8 +62,16 @@ void drive() {
   vex::timer basketDelayTimer = vex::timer();
   double basketDelay = 0;
 
+  vex::timer compressionTimer = vex::timer();
+  double compressionDelay = 0.2;
+
   vex::timer shotTimer = vex::timer();
   vex::timer exp = vex::timer();
+
+
+  int discCount = 0;
+  bool intaking = false;
+  bool exiting = false;
 
   while (1) {
     displayInfo();
@@ -72,7 +92,32 @@ void drive() {
     rDrive.spin(forward, (outputR / 100.0 * 12), volt);
 
 
+    if (discAtBottom(5)) {
+      intaking = true;
+    }
 
+    if (intaking && !discAtBottom(2)) {
+      intaking = false;
+      discCount++;
+    }
+
+    if (discAtBottom() && discCount >= 3) {
+      intRollSpeed = 0;
+    }
+
+    if (discAtFlywheel(3)) {
+      exiting = true;
+    }
+
+    if (exiting && !discAtFlywheel(2)) {
+      exiting = false;
+      discCount--;
+      if (discCount < 0) {
+        discCount = 0;
+      }
+    }
+
+    printf("discs = %d, bottomDisc = %d, bottomReflectivity = %ld\n", discCount, discAtBottom(), bottomIntakeSensor.reflectivity());
 
     // FLYWHEEL // 
     double speedUpDelay = Controller.ButtonL2.pressing() ? 0.5 : (Controller.ButtonL1.pressing() ? 0.00 : 0.5);
@@ -80,9 +125,9 @@ void drive() {
     if ((flywheel.velocity(rpm) * 6 < 2350 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
       flywheel.spin(forward, Controller.ButtonL2.pressing() ? 10 : 10, volt);
     } else if (!(expanded || expanding)) {
-      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.5 : 8.5, volt);
+      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.3 : 8.3, volt);
     }
-    printf("flywheel = %f\n", flywheel.velocity(rpm) * 6);
+    //printf("flywheel = %f\n", flywheel.velocity(rpm) * 6);
 
 
     
@@ -91,7 +136,9 @@ void drive() {
       shooting = true;
       
       angleChanger.set(false);
-      compressionBar.set(true);
+     if (compressionTimer.value() > compressionDelay) {
+        compressionBar.set(true);
+      }
       
       if (basketDelayTimer.value() > basketDelay) {
         intake_roller.spin(reverse, 100, pct);
@@ -103,7 +150,9 @@ void drive() {
       shooting = true;
 
       angleChanger.set(true);
-      compressionBar.set(true);
+      if (compressionTimer.value() > compressionDelay) {
+        compressionBar.set(true);
+      }
 
       if (basketDelayTimer.value() > basketDelay) {
         intake_roller.spin(reverse, 100, pct);
@@ -113,6 +162,7 @@ void drive() {
 
     } else {
       basketDelayTimer.reset();
+      compressionTimer.reset();
       shooting = false;
       compressionBar.set(false);
     }
@@ -123,6 +173,9 @@ void drive() {
     if (!shooting) {
       if (Controller.ButtonR1.pressing() && !r1prev) {
         if (intRollSpeed != 100) {
+          if (discCount >= 3) {
+            discCount = 2;
+          }
           intRollSpeed = 100;
         } else {
           intRollSpeed = 0;

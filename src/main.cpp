@@ -70,6 +70,33 @@ void calibrateIntertial()
   Brain.Screen.print("Done");
 }
 
+bool redAlliance = true;
+
+int colorSelectScreen() {
+  while (true) {
+    Brain.Screen.setPenColor(red);
+    if (abs(Brain.Screen.xPosition() - 125) <= 100 && abs(Brain.Screen.yPosition() - 120) <= 100) {
+      Brain.Screen.drawRectangle(25, 20, 200, 200, red);
+      redAlliance = true;
+    } else {
+      Brain.Screen.drawRectangle(25, 20, 200, 200);
+    }
+
+    Brain.Screen.setPenColor(blue);
+    if (abs(Brain.Screen.xPosition() - 355) <= 100 && abs(Brain.Screen.yPosition() - 120) <= 100) {
+      Brain.Screen.drawRectangle(255, 20, 200, 200, blue);
+      redAlliance = false;
+    } else {
+      Brain.Screen.drawRectangle(255, 20, 200, 200);
+    }
+
+    wait(200, msec);
+    Brain.Screen.clearScreen();
+
+  }
+}
+vex::task colorSelect;
+
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
@@ -78,6 +105,8 @@ void pre_auton(void) {
   // Example: clearing encoders, setting servo positions, ...
   calibrateLineSensors();
   calibrateIntertial();
+
+  vex::task colorSelect = vex::task(colorSelectScreen);
 
 }
 
@@ -93,15 +122,17 @@ void pre_auton(void) {
 
 void autonomous(void) {
   vex::competition::bStopAllTasksBetweenModes = true;
+  vex::task::stop(colorSelect);
+  Brain.Screen.setPenColor(white);
   //twoRoller();
   //farRoller();
   //roller();
   //testing();
-  //skills();
+  skills();
   //winPoint6(true);
   //leftSide(true);
   //leftSafe(false);
-  leftSideCut(true);
+  //leftSideCut(true);
   //rightSide5(false);
   //rightSide6(true);
   //rightMod(false);
@@ -122,6 +153,7 @@ void autonomous(void) {
 /*---------------------------------------------------------------------------*/
 
 void usercontrol(void) {
+
   // User control code here, inside the loop
   //matchLoadTest();
   //testing();

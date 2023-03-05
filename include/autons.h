@@ -94,8 +94,9 @@ void skills() {
   vex::task runIntake = vex::task(maintain3Discs);
   // move to preload shoot position
   
-  endOfMovePrecision = 2;
+  //endOfMovePrecision = 2;
   move(forward, 1, 0.001, State(0.7 TILE, 1 TILE, 315, 0.001, 50));
+
   Turn(90, 100);
   lDrive.spin(reverse, 100, pct);
   rDrive.spin(reverse, 100, pct);
@@ -241,14 +242,14 @@ void winPoint9(bool redAlliance) {
 
   move(forward, 1, 0.001, State(1 TILE + 4, 1 TILE - 10, 330, 1, 30));
   wait(300, msec);
-  endOfMovePrecision = 40;
+  //endOfMovePrecision = 40;
   intakeSpeed = 25;
   move(reverse, 1, 5, State(1 TILE + 4, 12, 30, 5, 30));
   wait(500, msec);
   runWithDelay(resetIntakeSpeed, 100);
   move(forward, 1, 1, State(2 TILE, 1 TILE, 55, 0.001));
 
-  endOfMovePrecision = 2;
+  //endOfMovePrecision = 2;
   Turn(346, 100);
 
   queueDiscs(3, 3400, 0.5, -1, false);
@@ -301,7 +302,7 @@ void winPoint6(bool redAlliance) {
   //flywheel.spin(forward, 12, volt);
   intakeSpeed = 25;
   discsIntaked = 0;
-  endOfMovePrecision = 20;
+  //endOfMovePrecision = 20;
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
@@ -316,12 +317,12 @@ void winPoint6(bool redAlliance) {
 
   runWithDelay(resetIntakeSpeed, 100);
  
-  endOfMovePrecision = 10;
+  //endOfMovePrecision = 10;
 
   move(forward, 1, 0.001, State(2 TILE + 4.5, 1 TILE + 5.5, 60, 7, 70));
   intakeLift.set(false);
   wait(2000, msec);
-  endOfMovePrecision = 10;
+  //endOfMovePrecision = 10;
   move(forward, 1, 1, State(3 TILE, 2 TILE, 45, 10, 100));
   wait(300, msec);
   Turn(323, 100, 1);
@@ -342,7 +343,7 @@ void winPoint6(bool redAlliance) {
   rDrive.spin(reverse, 100, pct);
   spinRoller(false, redAlliance);
   runWithDelay(resetIntakeSpeed, 400);
-  endOfMovePrecision = 2;
+  //endOfMovePrecision = 2;
  move(forward, 1, 1, State(5 TILE + 5, 4 TILE + 13, 276, 0.001));
   
   queueDiscs(3, 3400, 0.5, 1.0, false);
@@ -365,7 +366,7 @@ void leftSide(bool redAlliance) {
   //flywheel.spin(forward, 12, volt);
   intakeSpeed = 25;
   discsIntaked = 0;
-  endOfMovePrecision = 5;
+  //endOfMovePrecision = 5;
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
@@ -404,7 +405,7 @@ void leftSideCut(bool redAlliance) {
   //flywheel.spin(forward, 12, volt);
   intakeSpeed = 25;
   discsIntaked = 2;
-  endOfMovePrecision = 5;
+  //endOfMovePrecision = 5;
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
@@ -425,7 +426,7 @@ void leftSideCut(bool redAlliance) {
     wait(10, msec);
   }
   Turn(75, 100);
-  endOfMovePrecision = 50;
+  //endOfMovePrecision = 50;
   move(forward, 1, 5, State(2 TILE + 5, 1 TILE + 10, 75, 0.001, 70));
   intakeLift.set(false);
   wait(2000, msec);
@@ -449,7 +450,7 @@ void leftSafe(bool redAlliance) {
   //flywheel.spin(forward, 12, volt);
   intakeSpeed = 25;
   discsIntaked = 0;
-  endOfMovePrecision = 5;
+  //endOfMovePrecision = 5;
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
@@ -486,14 +487,14 @@ void rightSide5(bool redAlliance) {
   queueDiscs(0, 3300, 0.5, -1, false);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
-  endOfMovePrecision = 10;
+  //endOfMovePrecision = 10;
   move(forward, 1, 1, State(5 TILE + 9.375, 5 TILE - 12, 0, 1));
   Turn(270, 100, 5);
   intake_roller.spin(forward, 50, pct);
   lDrive.spin(reverse, 50, pct);
   rDrive.spin(reverse, 50, pct);
   spinRoller(false, redAlliance);
-  endOfMovePrecision = 1;
+  //endOfMovePrecision = 1;
   move(forward, 1, 2, State(5 TILE + 6, 5 TILE - 12, 277, 1));
   vex::task runIntake = vex::task(maintain3Discs);
 
@@ -524,7 +525,7 @@ globalX = 5 TILE + 2.5 + TILE_EDGE + LEFT_TO_CENTER;
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
-  endOfMovePrecision = 5;
+  //endOfMovePrecision = 5;
   move(forward, 1, 1, State(5 TILE + 2, 5 TILE - 9, 340, 5)); 
   move(reverse, 1, 1, State(5 TILE + 9.375, 5 TILE - 12, 270, 1));
 
@@ -532,7 +533,7 @@ globalX = 5 TILE + 2.5 + TILE_EDGE + LEFT_TO_CENTER;
   lDrive.spin(reverse, 50, pct);
   rDrive.spin(reverse, 50, pct);
   spinRoller(false, redAlliance);
-  endOfMovePrecision = 1;
+  //endOfMovePrecision = 1;
   move(forward, 1, 2, State(5 TILE + 6, 5 TILE - 12, 277, 1));
 
 
@@ -562,7 +563,7 @@ void rightMod(bool redAlliance) {
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
-  endOfMovePrecision = 5;
+  //endOfMovePrecision = 5;
   move(forward, 1, 1, State(5 TILE + 2, 5 TILE - 9, 340, 5)); 
   move(reverse, 1, 1, State(5 TILE + 9.375, 5 TILE - 12, 270, 1));
 
@@ -570,7 +571,7 @@ void rightMod(bool redAlliance) {
   lDrive.spin(reverse, 50, pct);
   rDrive.spin(reverse, 50, pct);
   spinRoller(false, redAlliance);
-  endOfMovePrecision = 1;
+  //endOfMovePrecision = 1;
   move(forward, 1, 2, State(5 TILE + 6, 5 TILE - 12, 277, 1));
 
 
