@@ -2,7 +2,9 @@
 
 using namespace vex;
 
-#define wheelCirc 2.73 * M_PI 
+#define sideWheelCirc 2.73 * M_PI 
+#define backWheelCirc 2.78 * M_PI 
+
 #define sideDist 1.75
 #define backDist 4.5
 #define errorPerRotation 2.5
@@ -79,9 +81,9 @@ int startTracking() {
     angleChange = toRad(getAngleDiff(prevAngle, currAngle));
 
     sideWheelCurr = leftEncoder.position(deg);
-    sideWheelDelta = (sideWheelCurr - sideWheelPrev) * wheelCirc / 360;
+    sideWheelDelta = (sideWheelCurr - sideWheelPrev) * sideWheelCirc / 360;
     backWheelCurr = backEncoder.position(deg);
-    backWheelDelta = (backWheelCurr - backWheelPrev) * wheelCirc / 360;
+    backWheelDelta = (backWheelCurr - backWheelPrev) * backWheelCirc / 360;
 
 
     headingDiff = toRad(getAngleDiff(0, currAngle));

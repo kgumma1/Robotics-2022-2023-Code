@@ -42,6 +42,11 @@ digital_out expansion = digital_out(Brain.ThreeWirePort.A);
 
 bool RemoteControlCodeEnabled = true;
 
+// GLOBBAL FUNCTIONS
+bool discAtBottom(int threshold = 8);
+bool discAtTop(int threshold = 4);
+bool discAtFlywheel(int threshold = 4);
+
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
  *

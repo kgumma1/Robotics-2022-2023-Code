@@ -6,9 +6,9 @@ using namespace vex;
 
 
 void Turn(double ang, double maxSpeed, double precision = 0.5) {
-  double turnkP = 0.3;
-  double turnkI = 0.01;
-  double turnkD = 2.3 + fabs(getAngleDiff(globalAngle, ang) / 900.0);
+  double turnkP = 0.13;
+  double turnkI = 0.03;
+  double turnkD = 0.7; /*+ fabs(getAngleDiff(globalAngle, ang) / 900.0)*/;
 
   double angleError;
   double prevAngleError;
@@ -66,14 +66,14 @@ bool exitMove = false;
 
 void move(va_list statesInputList, directionType d, int count, double initAdherence, double endOfMovePrecision, double timeout) {
   exitMove = false;
-  
+  printf("inputs = d: %d, c: %d, adh: %f, emp: %f, tm: %f\n", d == forward ? 1 : 0, count, initAdherence, endOfMovePrecision, timeout);
+  printf("not %d\n", 1);
   State states[count + 1];
   Bezier beziers[count];
     
   double dir = (d == forward ? 1 : -1);
   states[0] = State(globalX, globalY, globalAngle, initAdherence * dir);
   
-
 
   for (int i = 1; i <= count; i++) {
     states[i] = va_arg(statesInputList, State);
@@ -87,7 +87,7 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
     beziers[i] = Bezier(states[i], states[i+1]);
     totalLength += beziers[i].lengthleft(0);
   }
-
+  printf("not %d\n", 2);
   double tOfClosestPoint;
   Point closestPoint;
 
@@ -115,10 +115,11 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
 
   vex::timer exitTimer = vex::timer();
 
-  
+  printf("not %d\n", 3);
   for (int i = 0; i < count; i++) {
     totalLength -= beziers[i].lengthleft(0);
     maxSpeed = states[i+1].maxSpeed;
+    printf("b#: %d, x: %f, y; %f, adh: %f, speed: %f\n", i + 1, states[i].location.x, states[i].location.y, states[i].angle, states[i].maxSpeed);
     
     do {
       robotPose.location.x = globalX;
@@ -160,6 +161,8 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
       wait(10, msec);
     } while(beziers[i].lengthleft(tOfClosestPoint) > 2 && exitTimer.time() < timeout && !exitMove);
   }
+    printf("not %d\n", 4);
+
   if (exitTimer.time() < timeout && !exitMove) {
     Turn(states[count].angle, states[count].maxSpeed, endOfMovePrecision);
   }
@@ -206,37 +209,58 @@ double parallelEndOfMovePrecision;
 double parallelTimeout;
 
 int parallelHandler() {
-  move(moveParallelList, parallelD, parallelCount, parallelInitAdherence, parallelEndOfMovePrecision,parallelTimeout);
+  printf("phand%d\n",1 );
+  move(moveParallelList, parallelD, parallelCount, parallelInitAdherence, parallelEndOfMovePrecision, parallelTimeout);
+  printf("phand%d\n",2 );
+  return 1;
 }
 
 vex::task moveParallel(directionType d, int count, double initAdherence, ...) {
-  va_start(moveParallelList, initAdherence);
+  va_list inputList;
+
+  va_start(inputList, initAdherence);
+  moveParallelList = inputList;
   parallelD = d;
+  parallelCount = count;
   parallelInitAdherence = initAdherence;
   parallelEndOfMovePrecision = 2;
-  parallelTimeout = 60;
-  
-  return vex::task(parallelHandler);
+  parallelTimeout = 60000;
+    Controller.rumble("...");
+  vex::task runMove = vex::task(parallelHandler);
+    Controller.rumble("..-");
+  return runMove;
 }
 
 vex::task moveParallel(directionType d, int count, double initAdherence, double endOfMovePrecision, ...) {
-  va_start(moveParallelList, endOfMovePrecision);
+  va_list inputList;
+
+  va_start(inputList, endOfMovePrecision);
+  moveParallelList = inputList;
   parallelD = d;
+  parallelCount = count;
   parallelInitAdherence = initAdherence;
   parallelEndOfMovePrecision = endOfMovePrecision;
-  parallelTimeout = 60;
-
-  return vex::task(parallelHandler);
+  parallelTimeout = 60000;
+  printf("movep%d\n",1 );
+  vex::task runMove = vex::task(parallelHandler);
+  printf("movep%d\n",2 );
+  return runMove;
 }
 
 vex::task moveParallel(directionType d, int count, double initAdherence, double endOfMovePrecision, double timeout, ...) {
-  va_start(moveParallelList, timeout);
+  va_list inputList;
+
+  va_start(inputList, timeout);
+  moveParallelList = inputList;
   parallelD = d;
+  parallelCount = count;
   parallelInitAdherence = initAdherence;
   parallelEndOfMovePrecision = endOfMovePrecision;
   parallelTimeout = timeout;
 
-  return vex::task(parallelHandler);
+  vex::task runMove = vex::task(parallelHandler);
+  
+  return runMove;
 }
 
 
@@ -285,6 +309,7 @@ double targetSpeed = 0;
 double shotD = 0.2;
 double maxShotT = 60;
 int discsShotCount = 0;
+double recoveryTime = 300;
 
 bool volley = false;
 
@@ -297,12 +322,13 @@ int numQueued() {
   return discCount;
 }
 
-int queueDiscs(int n, double target = -1, double shotDelay = -1, double maxShotTime = -1, bool setVolley = true) {
+int queueDiscs(int n, double target = -1, double shotDelay = -1, double maxShotTime = -1, bool setVolley = true, double recovery = -1) {
   discCount += n;
   targetSpeed = target > 0 ? target : targetSpeed;
   shotD = shotDelay > 0 ? shotDelay : shotD;
   maxShotT = maxShotTime > 0 ? maxShotTime : maxShotT;
   volley = setVolley;
+  recoveryTime = recovery > 0 ? recovery : recoveryTime;
   return discCount;
 }
 
@@ -354,29 +380,29 @@ double intakeThreshold = 4;
 
 int maintain3Discs() {
   while (true) {
-    while (topIntakeSensor.reflectivity() - intakeThreshold <= topIntakeSensorInit) {
-      if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - intakeThreshold > bottomIntakeSensorInit) {
-        intake_roller.spin(reverse, -intakeSpeed, pct);
+    while (!discAtTop(6)) {
+      if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
+        intake_roller.spin(reverse, 0, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
-      printf("discCount = %d\n", discCount);
-      printf("discsIntaked = %d\n", discsIntaked);
+      printf("NOTOP discCount = %d\n", discCount);
+      printf("NOTOP discsIntaked = %d\n", discsIntaked);
     }
     printf("discCount = %d\n", discCount);
     printf("discsIntaked = %d\n", discsIntaked);
-    while (topIntakeSensor.reflectivity() - intakeThreshold > topIntakeSensorInit) {
-      if (discsIntaked >= 3 && discCount <= 0 && bottomIntakeSensor.reflectivity() - intakeThreshold > bottomIntakeSensorInit) {
-        intake_roller.spin(reverse, -intakeSpeed, pct);
+    while (discAtTop(3)) {
+      if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
+        intake_roller.spin(reverse, 0, pct);
       }
       if (discsIntaked < 3 && discCount <= 0) {
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
-      printf("discCount = %d\n", discCount);
-      printf("discsIntaked = %d\n", discsIntaked);
+      printf("YESTOP discCount = %d\n", discCount);
+      printf("YESTOP discsIntaked = %d\n", discsIntaked);
     }
     printf("discCount = %d\n", discCount);
     printf("discsIntaked = %d\n", discsIntaked);
@@ -397,9 +423,13 @@ int flywheelPID() {
   double outputChange = 0;
   vex::timer shotTimer = vex::timer();
   vex::timer matchLoadTimer = vex::timer();
+  vex::timer compressionTimer = vex::timer();
+  
   int errorCount = 0;
 
   vex::task startShotCount = vex::task(trackDiscsShot);
+
+
   
   do {
     error = targetSpeed - (flywheel.velocity(rpm) * 6);
@@ -423,7 +453,7 @@ int flywheelPID() {
 
   
     output = output + outputChange >= 12 ? 12 : output + outputChange;
-    output = volleying ? 12 : output;
+
     //output = 7.2;
     if (flywheelSensor.reflectivity() - 4 > flywheelSensorInit) {
       matchLoadTimer.reset();
@@ -432,7 +462,7 @@ int flywheelPID() {
     if (matchLoadSensor.reflectivity() - 4 > matchLoadSensorInit) {
       matchLoadTimer.reset();
     }
-    if (matchLoadTimer.time() < 500) {
+    if (matchLoadTimer.time() < recoveryTime) {
       output = 12;
     }
 
@@ -449,7 +479,7 @@ int flywheelPID() {
       discCount = 0;
     }
 
-    if (((errorCount >= 2 && shotTimer.value() > shotD) || shotTimer.value() > maxShotT) && discCount > 0) {
+    if (((errorCount >= 1 && shotTimer.value() > shotD) || shotTimer.value() > maxShotT) && discCount > 0) {
       
       if (volley) {
         intake_roller.spin(reverse, 100, percent);
@@ -465,7 +495,11 @@ int flywheelPID() {
       intake_roller.stop(coast);
       shotTimer.reset();
     }*/
-    if (discCount > 0) {
+
+    if (discCount == 0) {
+      compressionTimer.reset();
+    }
+    if (discCount > 0 && compressionTimer.value() > 0.3) {
       compressionBar.set(true);
     } else {
       compressionBar.set(false);
