@@ -92,16 +92,16 @@ void drive() {
     rDrive.spin(forward, (outputR / 100.0 * 12), volt);
 
 
-    if (discAtBottom(5)) {
+    if (discAtBottom(8)) {
       intaking = true;
     }
 
-    if (intaking && !discAtBottom(2)) {
+    if (intaking && !discAtBottom(4)) {
       intaking = false;
       discCount++;
     }
 
-    if (discAtBottom() && discCount >= 3) {
+    if (discAtBottom(8) && discCount >= 3) {
       intRollSpeed = 0;
     }
 

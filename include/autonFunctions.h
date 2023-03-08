@@ -225,9 +225,9 @@ vex::task moveParallel(directionType d, int count, double initAdherence, ...) {
   parallelInitAdherence = initAdherence;
   parallelEndOfMovePrecision = 2;
   parallelTimeout = 60000;
-    Controller.rumble("...");
+
   vex::task runMove = vex::task(parallelHandler);
-    Controller.rumble("..-");
+  
   return runMove;
 }
 

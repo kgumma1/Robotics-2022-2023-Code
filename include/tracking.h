@@ -14,6 +14,8 @@ double globalX;
 double globalY;
 double globalAngle;
 
+double initHeading = 0;
+
 void displayTracking() {
   Brain.Screen.clearScreen();
   Brain.Screen.printAt(5, 20, "X: %.3f", globalX);
@@ -36,7 +38,7 @@ void displayTracking() {
 
 double inertialAdjusted() {
   double curr = inertialSensor.heading();
-  return curr - inertialSensor.rotation() / 360.0 * errorPerRotation;
+  return curr - (inertialSensor.rotation() - initHeading) / 360.0 * errorPerRotation;
 }
 
 double getAngleDiff(double prev, double curr) {
@@ -58,8 +60,8 @@ double toDeg(double rad) {
 
 int startTracking() {
 
-  double prevAngle = 0;
-  double currAngle = 0;
+  double prevAngle = initHeading;
+  double currAngle = initHeading;
   double angleChange = 0;
   double headingDiff;
 
