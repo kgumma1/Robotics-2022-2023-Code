@@ -167,6 +167,8 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
     Turn(states[count].angle, states[count].maxSpeed, endOfMovePrecision);
   }
 
+  lDrive.stop(brake);
+  rDrive.stop(brake);
 
   Brain.Screen.setPenColor(orange);
   for (int i = 0; i < visited.size() - 1; i++) {
@@ -241,9 +243,9 @@ vex::task moveParallel(directionType d, int count, double initAdherence, double 
   parallelInitAdherence = initAdherence;
   parallelEndOfMovePrecision = endOfMovePrecision;
   parallelTimeout = 60000;
-  printf("movep%d\n",1 );
+
   vex::task runMove = vex::task(parallelHandler);
-  printf("movep%d\n",2 );
+
   return runMove;
 }
 
@@ -352,11 +354,11 @@ int discsIntaked;
 
 int trackDiscsShot() {
   while (true) {
-    while (flywheelSensor.reflectivity() - 4 <= flywheelSensorInit) {
+    while (flywheelSensor.reflectivity() - 5 <= flywheelSensorInit) {
       wait(5, msec);
       //printf("flywheelSensor = %ld\n", flywheelSensor.reflectivity());
     }
-    while (flywheelSensor.reflectivity() - 4 > flywheelSensorInit) {
+    while (flywheelSensor.reflectivity() - 5 > flywheelSensorInit) {
       wait(5, msec);
       //printf("flywheelSensor = %ld\n", flywheelSensor.reflectivity());
     }
@@ -380,7 +382,7 @@ double intakeThreshold = 4;
 
 int maintain3Discs() {
   while (true) {
-    while (!discAtTop(6)) {
+    while (!discAtTop(3)) {
       if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
         intake_roller.spin(reverse, 0, pct);
       }
@@ -388,12 +390,12 @@ int maintain3Discs() {
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
-      printf("NOTOP discCount = %d\n", discCount);
+      //printf("NOTOP discCount = %d\n", discCount);
       printf("NOTOP discsIntaked = %d\n", discsIntaked);
     }
-    printf("discCount = %d\n", discCount);
+    //printf("discCount = %d\n", discCount);
     printf("discsIntaked = %d\n", discsIntaked);
-    while (discAtTop(3)) {
+    while (discAtTop(2)) {
       if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
         intake_roller.spin(reverse, 0, pct);
       }
@@ -401,16 +403,17 @@ int maintain3Discs() {
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
-      printf("YESTOP discCount = %d\n", discCount);
+      //printf("YESTOP discCount = %d\n", discCount);
       printf("YESTOP discsIntaked = %d\n", discsIntaked);
     }
-    printf("discCount = %d\n", discCount);
+    //printf("discCount = %d\n", discCount);
     printf("discsIntaked = %d\n", discsIntaked);
     discsIntaked++;
   }
 }
 
 bool volleying = false;
+double volleySpeed = 100;
 
 int flywheelPID() {
 
@@ -482,10 +485,10 @@ int flywheelPID() {
     if (((errorCount >= 1 && shotTimer.value() > shotD) || shotTimer.value() > maxShotT) && discCount > 0) {
       
       if (volley) {
-        intake_roller.spin(reverse, 100, percent);
+        intake_roller.spin(reverse, volleySpeed, percent);
         volleying = true;
       } else {
-        intake_roller.startRotateFor(reverse, 580, deg, 100, velocityUnits::pct);
+        intake_roller.startRotateFor(reverse, 800, deg, 100, velocityUnits::pct);
       }
 
       shotTimer.reset();
@@ -510,7 +513,7 @@ int flywheelPID() {
 
 
     //printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
-    printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
+    //printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
     //printf("discs = %d\n", discsIntaked);
     wait(10, msec);
   } while (true);

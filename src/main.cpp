@@ -106,7 +106,7 @@ void pre_auton(void) {
   calibrateLineSensors();
   calibrateIntertial();
 
-  vex::task colorSelect = vex::task(colorSelectScreen);
+  colorSelect = vex::task(colorSelectScreen);
 
 }
 
@@ -128,7 +128,9 @@ void autonomous(void) {
   //farRoller();
   //roller();
   //testing();
-  skills();
+  //skills();
+  //leftSide9(redAlliance);
+  rightSide9(redAlliance);
   //skillsP2();
   //winPoint6(true);
   //leftSide(true);

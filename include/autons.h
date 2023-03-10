@@ -19,7 +19,29 @@ vex::task runWithDelay(int (*callback)(), double timeMsec) {
   return runFunction;
 }
 
+void pauseAndTrack() {
+  while(true) {
+    displayTracking();
+    wait(50, msec);
+  }
+}
+
 void testing() {
+  resetDiscCount();
+  volleySpeed = 35;
+  vex::task flywheelOn1 = vex::task(flywheelPID);
+  adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
+  queueDiscs(0, 3420, 0.5, -1, false);
+  //flywheel.spin(forward, 12, volt);
+  discsIntaked = 3;
+  vex::task runIntake = vex::task(maintain3Discs);
+  wait(3, sec);
+  queueDiscs(3, 3420, 0.5, 0.5, true, 500);
+
+
+
+
+  wait(1000, sec);
 
   globalX = 1 TILE + 4 + TILE_EDGE + LEFT_TO_CENTER;
   globalY = 1 TILE - (TILE_EDGE + TOP_TO_CENTER + 5.25);
@@ -559,6 +581,80 @@ void leftSide(bool redAlliance) {
   }
 }
 
+void leftSide9(bool redAlliance) {
+  globalX = 1 TILE + TILE_EDGE + LEFT_TO_CENTER;
+  globalY = 1 TILE - (2.625 + TILE_EDGE + TOP_TO_CENTER);
+  vex::task track = vex::task(startTracking);
+  resetDiscCount();
+  volleySpeed = 45;
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
+  queueDiscs(0, 3420, 0.5, -1, false);
+  //flywheel.spin(forward, 12, volt);
+  discsIntaked = 2;
+  vex::task runIntake = vex::task(maintain3Discs);
+
+  move(forward, 1, 0.001, 30, State(27, 18, 330, 1, 100));
+
+  //endOfMovePrecision = 40;
+  intakeSpeed = 25;
+  intake_roller.spin(forward, 25, percent);
+  moveParallel(reverse, 1, 0.001, State(1 TILE + 8, 0, 0, 7, 100));
+  spinRoller(true, redAlliance, 1000);
+  exitMove = true;
+  wait(100, msec);
+  exitMove = false;
+  runWithDelay(resetIntakeSpeed, 100);
+  move(forward, 1, 0.001, 0.5, State(38.5, 19 , 347, 0.001));
+
+  //endOfMovePrecision = 2;
+  intakeLift.set(true);
+  
+  //queueDiscs(3, 3600, 0.5, 0.5, true, 500);
+
+  queueDiscs(3, 3420, 0.5, 0.5, true, 500);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  queueDiscs(0, 3400);
+ 
+  wait(100, msec);
+  printf("mark: %d\n", 1);
+  move(forward, 1, 1, 0.5, State(36.8, 27.8, 347, 1));
+  printf("mark: %d\n", 2);
+
+  intakeLift.set(false);
+  wait(2000, msec);
+  intakeLift.set(true);
+  queueDiscs(3, 3400, 0.5, 0.5, true, 500);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  queueDiscs(0, 3350);
+  exitMove = true;
+  wait(50, msec);
+
+  //move(reverse, 1, 3, 10, State(2 TILE - 10, 1 TILE - 1, 5, 3));
+  Turn(54, 100, 10);
+  moveParallel(forward, 1, 0.001, 10, State(2 TILE + 3, 1 TILE + 10, 55, 5));
+  while (Point(globalX, globalY).distTo(Point(2 TILE + 3, 1 TILE + 10)) > 5) {
+    wait(10, msec);
+  }
+  intakeLift.set(false);
+
+  
+  
+  wait(1000, msec);
+  exitMove = true;
+  Turn(338, 100);
+  intakeLift.set(true);
+  queueDiscs(3, 3350, 0.5, 0.5, true, 500);
+  while (numQueued() > 0) {
+    wait(10, msec);
+  }
+  wait(1000, sec);
+}
+
 void leftSideCut(bool redAlliance) {
   globalX = 1 TILE + 4 + TILE_EDGE + LEFT_TO_CENTER;
   globalY = 1 TILE - (TILE_EDGE + TOP_TO_CENTER + 5.25);
@@ -680,7 +776,7 @@ void rightSide5(bool redAlliance) {
 }
 
 void rightSide6(bool redAlliance) {
-globalX = 5 TILE + 2.5 + TILE_EDGE + LEFT_TO_CENTER;
+  globalX = 5 TILE + 2.5 + TILE_EDGE + LEFT_TO_CENTER;
   globalY = 4 TILE - (TILE_EDGE + TOP_TO_CENTER);
   vex::task track = vex::task(startTracking);
   resetDiscCount();
@@ -749,5 +845,62 @@ void rightMod(bool redAlliance) {
 
 }
 
+void rightSide9(bool redAlliance) {
+  globalX = 5 TILE + 2.5 + TILE_EDGE + LEFT_TO_CENTER;
+  globalY = 4 TILE - (TILE_EDGE + TOP_TO_CENTER);
+  vex::task track = vex::task(startTracking);
+  resetDiscCount();
+  discsIntaked = 2;
+  volleySpeed = 40;
+  vex::task flywheelOn = vex::task(flywheelPID);
+  adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
+  queueDiscs(0, 3420, 0.5, -1, false);
+  vex::task runIntake = vex::task(maintain3Discs);
+  leftRollerSensor.setLightPower(100);
+  rightRollerSensor.setLightPower(100);
+  //endOfMovePrecision = 5;
+  move(forward, 1, 1, 20, State(5 TILE + 2, 5 TILE - 9, 340, 5)); 
+  moveParallel(reverse, 2, 0.001, State(6 TILE - 20, 4 TILE + 13, 290, 1), State(6 TILE + 30, 4 TILE + 10, 270, 40));
+  intakeSpeed = 25;
+  intake_roller.spin(forward, 25, pct);
+
+  spinRoller(false, redAlliance, 2000);
+  exitMove = true;
+  wait(50, msec);
+  //endOfMovePrecision = 1;
+  runWithDelay(resetIntakeSpeed, 100);
+  move(forward, 1, 1, 0.5, State(5 TILE + 1.5, 4 TILE + 12, 278, 7));
+  intakeLift.set(true);
+
+  queueDiscs(3, 3420, 0.5, 0.5, true, 500);
+
+  while(numQueued() > 0){
+    wait(10, msec);
+  }
+  
+
+  moveParallel(forward, 1, 0.001, 0.5, State(5 TILE - 4, 4 TILE + 13, 278, 0.001));
+  while (Point(globalX, globalY).distTo(Point(5 TILE - 4, 4 TILE + 13)) > 2) {
+    wait(10, msec);
+  }
+  intakeLift.set(false);
+  wait(1500, msec);
+  queueDiscs(3, 3420, 0.5, 0.5, true, 500);
+  intakeLift.set(true);
+  while(numQueued() > 0){
+    wait(10, msec);
+  }
+  intakeLift.set(false);
+
+  queueDiscs(0, 3200, -1, -1, false);
+  move(forward, 2, 0.001, State(4.5 TILE, 3.5 TILE, 220, 3, 60), State(3.5 TILE, 2.5 TILE, 313, 0.001, 100));
+
+  queueDiscs(3, 3200, 0.5, 0.5, true, 300);
+    intakeLift.set(true);
+  while(numQueued() > 0){
+    wait(10, msec);
+  }
+
+}
 
 
