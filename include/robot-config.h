@@ -31,6 +31,7 @@ extern encoder backEncoder;
 extern inertial inertialSensor;
 extern optical leftRollerSensor;
 extern optical rightRollerSensor;
+extern distance distanceSensor;
 
 extern digital_out angleChanger;
 extern digital_out compressionBar;

@@ -5,7 +5,7 @@
 using namespace vex;
 
 
-void Turn(double ang, double maxSpeed, double precision = 0.5) {
+void Turn(double ang, double maxSpeed, double precision = 0.5, double timeout = 10000) {
   double turnkP = 0.13;
   double turnkI = 0.03;
   double turnkD = 0.7; /*+ fabs(getAngleDiff(globalAngle, ang) / 900.0)*/;
@@ -15,6 +15,7 @@ void Turn(double ang, double maxSpeed, double precision = 0.5) {
   double derivError;
   double intError = 0;
   double output;
+  vex::timer turnTime = vex::timer();
 
   do {
 
@@ -40,7 +41,7 @@ void Turn(double ang, double maxSpeed, double precision = 0.5) {
       printf("output = %f, error = %f, derivError = %f\n", output, angleError, derivError);
 
       wait(10, msec);
-  } while(fabs(angleError) > precision);
+  } while(fabs(angleError) > precision && turnTime.time() < timeout);
   lDrive.stop(brake);
   rDrive.stop(brake);
 }
@@ -385,29 +386,33 @@ int maintain3Discs() {
     while (!discAtTop(3)) {
       if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
         intake_roller.spin(reverse, 0, pct);
+        intakeLift.set(true);
       }
       if (discsIntaked < 3 && discCount <= 0) {
+        intakeLift.set(false);
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
       //printf("NOTOP discCount = %d\n", discCount);
-      printf("NOTOP discsIntaked = %d\n", discsIntaked);
+      //printf("NOTOP discsIntaked = %d\n", discsIntaked);
     }
     //printf("discCount = %d\n", discCount);
-    printf("discsIntaked = %d\n", discsIntaked);
+    //printf("discsIntaked = %d\n", discsIntaked);
     while (discAtTop(2)) {
       if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
         intake_roller.spin(reverse, 0, pct);
+        intakeLift.set(true);
       }
       if (discsIntaked < 3 && discCount <= 0) {
+        intakeLift.set(false);
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
       //printf("YESTOP discCount = %d\n", discCount);
-      printf("YESTOP discsIntaked = %d\n", discsIntaked);
+      //printf("YESTOP discsIntaked = %d\n", discsIntaked);
     }
     //printf("discCount = %d\n", discCount);
-    printf("discsIntaked = %d\n", discsIntaked);
+    //printf("discsIntaked = %d\n", discsIntaked);
     discsIntaked++;
   }
 }
@@ -513,12 +518,21 @@ int flywheelPID() {
 
 
     //printf("error=%f outputChange=%f output=%f speed=%f rotSpeed=%f deriv=%f\n", error, outputChange, output, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7, (FlywheelUp.velocity(rpm) + FlywheelDown.velocity(rpm)) / 2 * 7 - rotSensor.velocity(rpm), derivative);
-    //printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
+    printf("error = %f, outputChange = %f, output = %f\n", error, outputChange, output);
     //printf("discs = %d\n", discsIntaked);
     wait(10, msec);
   } while (true);
   return 1;
 }
 
+vex::timer waitWhileShootingTimer = vex::timer();
+void waitWhileShooting(double timeout = 3000) {
+  waitWhileShootingTimer.reset();
 
+  while(numQueued() > 0 && waitWhileShootingTimer.time() < timeout) {
+    wait(10, msec);
+  }
+  resetDiscCount();
+  discsIntaked = 0;
+}
 

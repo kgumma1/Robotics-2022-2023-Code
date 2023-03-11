@@ -34,6 +34,7 @@ encoder backEncoder = encoder(Brain.ThreeWirePort.E);
 inertial inertialSensor = inertial(PORT18);
 optical leftRollerSensor = optical(PORT7);
 optical rightRollerSensor = optical(PORT8);
+distance distanceSensor = distance(PORT2);
 
 digital_out angleChanger = digital_out(Expander.F);
 digital_out compressionBar = digital_out(Brain.ThreeWirePort.B);
