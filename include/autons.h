@@ -137,14 +137,14 @@ void skills() {
 
   vex::task flywheelOn = vex::task(flywheelPID);
   adjustFPID(0.00005, 0.00005, 0, 0.004, 0.00005, 0);
-  queueDiscs(0, 2570, 0.5, -1, true, 180);
+  queueDiscs(0, 2540, 0.5, -1, true, 180);
   discsIntaked = 2; //2
   intake_roller.spin(forward, 100, pct);
   lDrive.spin(reverse, 100, pct);
   rDrive.spin(reverse, 100, pct);
   rightRollerSensor.setLightPower(100);
   leftRollerSensor.setLightPower(100);
-  spinRoller(true, true, 1600);
+  spinRoller(true, true, 1300);
   
   vex::task runIntake = vex::task(maintain3Discs);
   // move to preload shoot position
@@ -154,7 +154,7 @@ void skills() {
 
   queueDiscs(3);
   waitWhileShooting();
-  queueDiscs(0, 2730);
+  queueDiscs(0, 2710);
 
   // get discs along low goal barrier (far low goal)
   move(forward, 2, 0.001, 50, 2200, State(1 TILE - 1, 4 TILE - 12, 97, 0.001, 40), State(2 TILE + 2, 4 TILE - 7, 90, 20, 30));
@@ -904,7 +904,7 @@ void rightSide9(bool redAlliance) {
   volleySpeed = 30;
   vex::task flywheelOn = vex::task(flywheelPID);
   adjustFPID(0.00015, 0.00005, 0, 0.001, 0.00007, 0);
-  queueDiscs(0, 3300, 0.5, -1, false, 500);
+  queueDiscs(0, 3280, 0.5, -1, false, 500);
   vex::task runIntake = vex::task(maintain3Discs);
   leftRollerSensor.setLightPower(100);
   rightRollerSensor.setLightPower(100);
@@ -914,44 +914,40 @@ void rightSide9(bool redAlliance) {
   intakeSpeed = 25;
   intake_roller.spin(forward, 25, pct);
 
-  spinRoller(false, redAlliance, 2000);
+  spinRoller(false, redAlliance, 1300);
   exitMove = true;
-  intakeLift.set(true);  intakeLift.set(true);  intakeLift.set(true);  intakeLift.set(true);
+  
   
   wait(50, msec);
   //endOfMovePrecision = 1;
 
   runWithDelay(resetIntakeSpeed, 100);
-
-  moveParallel(forward, 1, 0.001, 0.5, State(5 TILE - 3, 4 TILE + 12, 275, 0.001, 70));
+intakeLift.set(true); 
+  moveParallel(forward, 1, 0.001, 0.5, State(5 TILE - 3, 4 TILE + 12, 279, 0.001, 50));
 
   while (Point(globalX, globalY).distTo(Point(5 TILE - 3, 4 TILE + 12)) > 2) {
     wait(10, msec);
   }
-  queueDiscs(3, 3300, 0.5, 0.5, true, 500);
+  queueDiscs(3, 3280, 0.5, 0.5, true, 500);
 
-  while(numQueued() > 0){
-    wait(10, msec);
-  }
+  waitWhileShooting();
   
 
   //moveParallel(forward, 1, 0.001, 0.5, State(5 TILE - 4, 4 TILE + 13, 278, 0.001));
 
-  queueDiscs(0, 3300, 0.5, 0.5, true, 500);
+  queueDiscs(0, 3280, 0.5, 0.5, true, 500);
   intakeLift.set(false);
   wait(1500, msec);
-  queueDiscs(3, 3300, 0.5, 0.5, true, 500);
+  queueDiscs(3, 3280, 0.5, 0.5, true, 500);
   intakeLift.set(true);
-  while(numQueued() > 0){
-    wait(10, msec);
-  }
+  waitWhileShooting();
   intakeLift.set(false);
 
-  queueDiscs(0, 3280, -1, -1, false);
+  queueDiscs(0, 3230, -1, -1, false);
   Turn(210, 100, 10);
   move(forward, 3, 0.001, 0.5, State(4.5 TILE, 3.5 TILE, 220, 3, 60), State(4 TILE, 3 TILE, 225, 10), State(3.75 TILE, 2.75 TILE, 311, 0.001, 100));
 
-  queueDiscs(3, 3280, 0.5, 0.5, true, 300);
+  queueDiscs(3, 3230, 0.5, 0.5, true, 300);
     intakeLift.set(true);
   while(numQueued() > 0){
     wait(10, msec);

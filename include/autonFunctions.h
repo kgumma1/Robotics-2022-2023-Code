@@ -386,10 +386,10 @@ int maintain3Discs() {
     while (!discAtTop(3)) {
       if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
         intake_roller.spin(reverse, 0, pct);
-        intakeLift.set(true);
+        //intakeLift.set(true);
       }
       if (discsIntaked < 3 && discCount <= 0) {
-        intakeLift.set(false);
+        //intakeLift.set(false);
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);
@@ -401,10 +401,10 @@ int maintain3Discs() {
     while (discAtTop(2)) {
       if (discsIntaked >= 3 && discCount <= 0 && discAtBottom(4)) {
         intake_roller.spin(reverse, 0, pct);
-        intakeLift.set(true);
+        //intakeLift.set(true);
       }
       if (discsIntaked < 3 && discCount <= 0) {
-        intakeLift.set(false);
+        //intakeLift.set(false);
         intake_roller.spin(forward, intakeSpeed, pct);
       }
       wait(5, msec);

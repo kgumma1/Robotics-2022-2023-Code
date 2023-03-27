@@ -96,12 +96,12 @@ void drive() {
       intaking = true;
     }
 
-    if (intaking && !discAtBottom(4)) {
+    if (intaking && !discAtBottom(2)) {
       intaking = false;
       discCount++;
     }
 
-    if (discAtBottom(8) && discCount >= 3) {
+    if (discAtBottom(10) && discCount >= 3) {
       intRollSpeed = 0;
     }
 
