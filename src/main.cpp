@@ -8,26 +8,22 @@
 /*----------------------------------------------------------------------------*/
 
 // ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// BumperH              bumper        H               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
+#include "drive.h"
+#include "autons.h"
 
 using namespace vex;
 
 // A global instance of competition
 competition Competition;
 
-vex::motor LeftOut(vex::PORT20, true);
-vex::motor LeftIn(vex::PORT19, false);
-vex::motor RightOut(vex::PORT11, false);
-vex::motor RightIn(vex::PORT18, true);
-
-vex::controller ct;
-
 // define your global instances of motors and other devices here
+double topIntakeSensorInit;
+double bottomIntakeSensorInit;
+double flywheelSensorInit;
+double matchLoadSensorInit;
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -38,6 +34,68 @@ vex::controller ct;
 /*  function is only called once after the V5 has been powered on and        */
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
+void calibrateLineSensors() {
+  wait(1, sec);
+  topIntakeSensorInit = 0;
+  bottomIntakeSensorInit = 0;
+  flywheelSensorInit = 0;
+  matchLoadSensorInit = 0;
+  for (int i = 0; i < 10; i++) {
+    topIntakeSensorInit += topIntakeSensor.reflectivity();
+    bottomIntakeSensorInit += bottomIntakeSensor.reflectivity();
+    flywheelSensorInit += flywheelSensor.reflectivity();
+    matchLoadSensorInit += matchLoadSensor.reflectivity();
+    wait(20, msec);
+  }
+  topIntakeSensorInit /= 10.0;
+  bottomIntakeSensorInit /= 10.0;
+  flywheelSensorInit /= 10.0;
+  matchLoadSensorInit /= 10.0;
+}
+
+void calibrateIntertial()
+{
+  // COMMENTED OUT BECAUSE WE DON"T HAVE AN INERTIAL SENSOR YET 
+  wait(1, sec);
+  inertialSensor.calibrate();
+  Brain.Screen.clearScreen();
+  Brain.Screen.print("...");
+  Controller.Screen.print("...");
+  while (inertialSensor.isCalibrating())
+  {
+    wait(10, msec);
+  }
+
+  Controller.Screen.print("Done");
+  Brain.Screen.print("Done");
+}
+
+bool redAlliance = true;
+
+int colorSelectScreen() {
+  while (true) {
+    Brain.Screen.setPenColor(red);
+    if (abs(Brain.Screen.xPosition() - 125) <= 100 && abs(Brain.Screen.yPosition() - 120) <= 100) {
+      Brain.Screen.drawRectangle(25, 20, 200, 200, red);
+      redAlliance = true;
+    } else {
+      Brain.Screen.drawRectangle(25, 20, 200, 200);
+    }
+
+    Brain.Screen.setPenColor(blue);
+    if (abs(Brain.Screen.xPosition() - 355) <= 100 && abs(Brain.Screen.yPosition() - 120) <= 100) {
+      Brain.Screen.drawRectangle(255, 20, 200, 200, blue);
+      redAlliance = false;
+    } else {
+      Brain.Screen.drawRectangle(255, 20, 200, 200);
+    }
+
+    wait(200, msec);
+    Brain.Screen.clearScreen();
+
+  }
+}
+vex::task colorSelect;
 
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
@@ -45,6 +103,11 @@ void pre_auton(void) {
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
+  calibrateLineSensors();
+  calibrateIntertial();
+
+  colorSelect = vex::task(colorSelectScreen);
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -58,6 +121,26 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
+  vex::competition::bStopAllTasksBetweenModes = true;
+  vex::task::stop(colorSelect);
+  Brain.Screen.setPenColor(white);
+  //twoRoller();
+  //farRoller();
+  //roller();
+  //testing();
+  //matchLoadTesting();
+  //skills();
+  //leftSide9(redAlliance);
+  rightSide9(redAlliance);
+  //skillsP2();
+  //winPoint6(true);
+  //leftSide(true);
+  //leftSafe(false);
+  //leftSideCut(true);
+  //rightSide5(false);
+  //rightSide6(true);
+  //rightMod(false);
+  //halfWP();
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
@@ -74,45 +157,23 @@ void autonomous(void) {
 /*---------------------------------------------------------------------------*/
 
 void usercontrol(void) {
+
   // User control code here, inside the loop
+  //matchLoadTest();
+  //testing();
 
-  bool aPrev = false;
-  while (1) {
-    // This is the main execution loop for the user control program.
-    // Each time through the loop your program should update motor + servo
-    // values based on feedback from the joysticks.
-
-    // ........................................................................
-    // Insert user code here. This is where you use the joystick values to
-    // update your motors, etc.
-    // ........................................................................
-    double initSens = 0.8;
-    double sensInc = -0.0001;
-
-
-    double Axis3Adjusted = ct.Axis3.position();
-    double Axis1Adjusted = ct.Axis1.position();
-
-
-    double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
-    double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
-
-    LeftIn.spin(forward, outputL, pct);
-    LeftOut.spin(forward, outputL, pct);
-    RightIn.spin(forward, outputR, pct);
-    RightOut.spin(forward, outputR, pct);
-
-    if (ct.ButtonA.pressing() && !aPrev) {
-      trans.set(!trans.value());
-    }
-
-    aPrev = ct.ButtonA.pressing();
-
-
-    
-    wait(20, msec); // Sleep the task for a short amount of time to
-                    // prevent wasted resources.
+  //skills();
+  drive();
+  //testing();
+  // testing without comp switch code
+  while(!Controller.ButtonA.pressing()) {
+    wait(5, msec);
   }
+  //twoRoller();
+  //winPoint();
+  //drive();
+  //winPoint();
+  //testing();
 }
 
 //
