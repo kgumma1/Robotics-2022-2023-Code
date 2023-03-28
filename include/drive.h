@@ -12,18 +12,10 @@ void displayInfo() {
   Brain.Screen.printAt(5, 100, "LeftFront:        %.0f", LFDrive.temperature(vex::temperatureUnits::celsius));
   Brain.Screen.printAt(5, 120, "LeftMiddle:       %.0f", LMDrive.temperature(vex::temperatureUnits::celsius));
   Brain.Screen.printAt(5, 140, "LeftRear:         %.0f", LBDrive.temperature(vex::temperatureUnits::celsius));
-  Brain.Screen.printAt(5, 160, "Intake/Roller:    %.0f", intake_roller.temperature(vex::temperatureUnits::celsius));
-  Brain.Screen.printAt(5, 180, "Flywheel:         %.0f", flywheel.temperature(vex::temperatureUnits::celsius));
+  Brain.Screen.printAt(5, 160, "Intake/Roller/Cata:    %.0f", intake_roller_cata.temperature(vex::temperatureUnits::celsius));
+  Brain.Screen.printAt(5, 180, "Cata:         %.0f", cataMain.temperature(vex::temperatureUnits::celsius));
 }
 
-void matchLoadTest() {
-  while (true) {
-    if (Controller.ButtonL2.pressing()) {
-      flywheel.spin(forward, Controller.Axis2.position(), pct);
-    }
-    intake_roller.spin(forward, 100, pct);
-  }
-}
 
 double straightExpFunction(double d) {
   double a = 4;
@@ -35,17 +27,15 @@ double turnExpFunction(double d) {
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
+bool cataFired(double resetAngle) {
+  return (cataSensor.angle(deg) < resetAngle || cataSensor.angle(deg) > 350);
+}
+
+/*
 bool discAtBottom(int threshold = 8) {
   return bottomIntakeSensor.reflectivity() - threshold > bottomIntakeSensorInit;
-}
+}*/
 
-bool discAtTop(int threshold = 4) {
-  return topIntakeSensor.reflectivity() - threshold > topIntakeSensorInit;
-}
-
-bool discAtFlywheel(int threshold = 4) {
-  return flywheelSensor.reflectivity() - threshold > flywheelSensorInit;
-}
 
 void drive() {
 
@@ -59,19 +49,18 @@ void drive() {
   
   int intRollSpeed = 0;
 
-  vex::timer basketDelayTimer = vex::timer();
-  double basketDelay = 0;
-
-  vex::timer compressionTimer = vex::timer();
-  double compressionDelay = 0.2;
-
-  vex::timer shotTimer = vex::timer();
+  
   vex::timer exp = vex::timer();
 
 
   int discCount = 0;
   bool intaking = false;
-  bool exiting = false;
+  bool resettingCata = false;
+  bool cataFiring = false;
+  bool pistonActive = false;
+
+
+  double resetAngle = 79; 
 
   while (1) {
     displayInfo();
@@ -92,113 +81,64 @@ void drive() {
     rDrive.spin(forward, (outputR / 100.0 * 12), volt);
 
 
-    if (discAtBottom(8)) {
-      intaking = true;
-    }
-
-    if (intaking && !discAtBottom(2)) {
-      intaking = false;
-      discCount++;
-    }
-
-    if (discAtBottom(10) && discCount >= 3) {
-      intRollSpeed = 0;
-    }
-
-    if (discAtFlywheel(3)) {
-      exiting = true;
-    }
-
-    if (exiting && !discAtFlywheel(2)) {
-      exiting = false;
-      discCount--;
-      if (discCount < 0) {
-        discCount = 0;
+    // intake/cata
+    if (Controller.ButtonR2.pressing() && !r2prev) {
+      intaking = !intaking;
+      if (intaking && !resettingCata && !cataFiring) {
+        intake_roller_cata.spin(reverse, 100, pct);
+      }
+      if (!intaking && !resettingCata && !cataFiring) {
+        intake_roller_cata.spin(reverse, 0, pct);
       }
     }
-
-    printf("discs = %d, bottomDisc = %d, bottomReflectivity = %ld\n", discCount, discAtBottom(), bottomIntakeSensor.reflectivity());
-
-    // FLYWHEEL // 
-    double speedUpDelay = Controller.ButtonL2.pressing() ? 0.5 : (Controller.ButtonL1.pressing() ? 0.00 : 0.5);
-    
-    if ((flywheel.velocity(rpm) * 6 < 2350 || basketDelayTimer.value() > speedUpDelay) && !(expanded || expanding)) {
-      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 10 : 10, volt);
-    } else if (!(expanded || expanding)) {
-      flywheel.spin(forward, Controller.ButtonL2.pressing() ? 8.3 : 8.3, volt);
+    if (intaking && !resettingCata && !cataFiring) {
+      intake_roller_cata.spin(reverse, 100, pct);
     }
-    //printf("flywheel = %f\n", flywheel.velocity(rpm) * 6);
 
-
-    
+    if (Controller.ButtonL2.pressing()) {
+      pistonActive = true;
+    }
 
     if (Controller.ButtonL1.pressing()) {
-      shooting = true;
-      
-      angleChanger.set(false);
-     if (compressionTimer.value() > compressionDelay) {
-        compressionBar.set(true);
-      }
-      
-      if (basketDelayTimer.value() > basketDelay) {
-        intake_roller.spin(reverse, 100, pct);
-      } else {
-        intake_roller.spin(forward, 100, pct);
-      }
-
-    } else if (Controller.ButtonL2.pressing()) {
-      shooting = true;
-
-      angleChanger.set(true);
-      if (compressionTimer.value() > compressionDelay) {
-        compressionBar.set(true);
-      }
-
-      if (basketDelayTimer.value() > basketDelay) {
-        intake_roller.spin(reverse, 100, pct);
-      } else {
-        intake_roller.spin(forward, 100, pct);
-      }
-
-    } else {
-      basketDelayTimer.reset();
-      compressionTimer.reset();
-      shooting = false;
-      compressionBar.set(false);
+      pistonActive = false;
     }
 
 
+    if (cataFired(resetAngle) && !resettingCata /*&& fabs(cataSensor.velocity(dps)) < 2*/) {
 
-    // INTAKE/ROLLER //
-    if (!shooting) {
-      if (Controller.ButtonR1.pressing() && !r1prev) {
-        if (intRollSpeed != 100) {
-          if (discCount >= 3) {
-            discCount = 2;
-          }
-          intRollSpeed = 100;
-        } else {
-          intRollSpeed = 0;
-        }
 
-      }
-
-      if (Controller.ButtonR2.pressing() && !r2prev) {
-        if (intRollSpeed != -100) {
-          intRollSpeed = -100;
-        } else {
-          intRollSpeed = 0;
-        }
-
-      }
-
-      intake_roller.spin(forward, intRollSpeed, pct);
+      resettingCata = true;
+      cataFiring = false;
+      intake_roller_cata.spin(forward, 100, pct);
+      cataMain.spin(forward, 100, pct);
+    }
+    if (!cataFiring) {
+      pistonBoost.set(false);
     }
 
-    if (Controller.ButtonX.pressing()) {
-      intakeLift.set(true);
-    } else {
-      intakeLift.set(false);
+    if (resettingCata && cataSensor.angle() > resetAngle && cataSensor.angle() < 350) {
+      cataMain.stop(coast);
+      intake_roller_cata.stop(coast);
+      resettingCata = false;
+    }
+
+    if (!resettingCata && cataSensor.angle() >= resetAngle && Controller.ButtonL1.pressing()) {
+      cataMain.spin(forward, 100, pct);
+      intake_roller_cata.spin(forward, 100, pct);
+ 
+
+      cataFiring = true;
+    }
+    if (cataSensor.velocity(dps) < -1 && !resettingCata) {
+  
+      //cataMain.stop(brake); // TEST
+      //intake_roller_cata.stop(brake); // TEST
+
+
+    }
+
+    if (cataSensor.angle() > resetAngle + 2 && cataFiring && pistonActive) {
+      pistonBoost.set(true);
     }
 
 
@@ -206,13 +146,13 @@ void drive() {
     if (Controller.ButtonY.pressing() && !yprev) {
       exp.reset();
     }
-    //printf("val = %f\n", exp.value());
+ 
     if (Controller.ButtonY.pressing()) {
       if (exp.value() > 0.500) {
-        expansion.set(true);
+        expansionLow.set(true);
+        expansionHigh.set(true);
         expanded = true;
       }
-      flywheel.stop(brake);
       expanding = true;
     } else {
       expanding = false;

@@ -4,8 +4,8 @@ using namespace vex;
 extern brain Brain;
 extern controller Controller;
 
-extern motor flywheel;
-extern motor intake_roller;
+extern motor cataMain;
+extern motor intake_roller_cata;
 
 extern motor RFDrive;
 extern motor RMDrive;
@@ -20,10 +20,7 @@ extern motor_group lDrive;
 
 extern triport Expander;
 
-extern line bottomIntakeSensor;
-extern line topIntakeSensor;
-extern line flywheelSensor;
-extern line matchLoadSensor;
+// extern line bottomIntakeSensor;
 
 extern encoder leftEncoder;
 extern encoder backEncoder;
@@ -32,19 +29,19 @@ extern inertial inertialSensor;
 extern optical leftRollerSensor;
 extern optical rightRollerSensor;
 extern distance distanceSensor;
+extern rotation cataSensor;
 
-extern digital_out angleChanger;
-extern digital_out compressionBar;
 extern digital_out intakeLift;
-extern digital_out expansion;
+extern digital_out expansionLow;
+extern digital_out expansionHigh;
+extern digital_out pistonBoost;
+extern digital_out bandBoost;
 
 
 
 // GLOBAL VARIABLES
-extern double topIntakeSensorInit;
-extern double bottomIntakeSensorInit;
-extern double flywheelSensorInit;
-extern double matchLoadSensorInit;
+//extern double topIntakeSensorInit;
+
 extern double globalX;
 extern double globalY;
 extern double globalAngle;

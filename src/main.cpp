@@ -20,10 +20,8 @@ using namespace vex;
 competition Competition;
 
 // define your global instances of motors and other devices here
-double topIntakeSensorInit;
-double bottomIntakeSensorInit;
-double flywheelSensorInit;
-double matchLoadSensorInit;
+//double topIntakeSensorInit;
+
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -36,21 +34,15 @@ double matchLoadSensorInit;
 /*---------------------------------------------------------------------------*/
 void calibrateLineSensors() {
   wait(1, sec);
-  topIntakeSensorInit = 0;
-  bottomIntakeSensorInit = 0;
-  flywheelSensorInit = 0;
-  matchLoadSensorInit = 0;
+  //topIntakeSensorInit = 0;
+  
   for (int i = 0; i < 10; i++) {
-    topIntakeSensorInit += topIntakeSensor.reflectivity();
-    bottomIntakeSensorInit += bottomIntakeSensor.reflectivity();
-    flywheelSensorInit += flywheelSensor.reflectivity();
-    matchLoadSensorInit += matchLoadSensor.reflectivity();
+    //topIntakeSensorInit += topIntakeSensor.reflectivity();
+    
     wait(20, msec);
   }
-  topIntakeSensorInit /= 10.0;
-  bottomIntakeSensorInit /= 10.0;
-  flywheelSensorInit /= 10.0;
-  matchLoadSensorInit /= 10.0;
+  //topIntakeSensorInit /= 10.0;
+  
 }
 
 void calibrateIntertial()
@@ -124,26 +116,8 @@ void autonomous(void) {
   vex::competition::bStopAllTasksBetweenModes = true;
   vex::task::stop(colorSelect);
   Brain.Screen.setPenColor(white);
-  //twoRoller();
-  //farRoller();
-  //roller();
-  //testing();
-  //matchLoadTesting();
-  //skills();
-  //leftSide9(redAlliance);
-  rightSide9(redAlliance);
-  //skillsP2();
-  //winPoint6(true);
-  //leftSide(true);
-  //leftSafe(false);
-  //leftSideCut(true);
-  //rightSide5(false);
-  //rightSide6(true);
-  //rightMod(false);
-  //halfWP();
-  // ..........................................................................
-  // Insert autonomous user code here.
-  // ..........................................................................
+  
+
 }
 
 /*---------------------------------------------------------------------------*/

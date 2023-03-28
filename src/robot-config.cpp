@@ -6,47 +6,45 @@ using namespace vex;
 brain Brain;
 controller Controller = controller(primary);
 
+motor cataMain = motor(PORT12, ratio18_1, false); 
+motor intake_roller_cata = motor(PORT20, ratio18_1, false);
 
+// CATA IS FRONT
 
-motor flywheel = motor(PORT10, ratio6_1, false);
-motor intake_roller = motor(PORT1, ratio6_1, false);
-
-motor RFDrive = motor (PORT11, ratio6_1, false);
-motor RMDrive = motor(PORT19, ratio6_1, false);
-motor RBDrive = motor(PORT20, ratio6_1, false);
+motor RFDrive = motor(PORT17, ratio6_1, false);
+motor RMDrive = motor(PORT10, ratio6_1, false);
+motor RBDrive = motor(PORT18, ratio6_1, false);
 motor_group rDrive = motor_group(RFDrive, RMDrive, RBDrive);
 
-motor LFDrive = motor (PORT14, ratio6_1, true);
+motor LFDrive = motor (PORT11, ratio6_1, true); 
 motor LMDrive = motor(PORT13, ratio6_1, true);
-motor LBDrive = motor(PORT12, ratio6_1, true);
+motor LBDrive = motor(PORT19, ratio6_1, true);
 motor_group lDrive = motor_group(LFDrive, LMDrive, LBDrive);
 
 
-triport Expander = triport(PORT15);
-line bottomIntakeSensor = line(Expander.B);
-line topIntakeSensor = line(Expander.A);
-line flywheelSensor = line(Brain.ThreeWirePort.D);
-line matchLoadSensor = line(Brain.ThreeWirePort.C);
+triport Expander = triport(PORT1);// NOT ON ROBOT
 
-encoder leftEncoder = encoder(Brain.ThreeWirePort.G);
-encoder backEncoder = encoder(Brain.ThreeWirePort.E);
+//line bottomIntakeSensor = line(Expander.B);
 
-inertial inertialSensor = inertial(PORT18);
-optical leftRollerSensor = optical(PORT7);
-optical rightRollerSensor = optical(PORT8);
+encoder leftEncoder = encoder(Brain.ThreeWirePort.E);
+encoder backEncoder = encoder(Brain.ThreeWirePort.G);
+
+inertial inertialSensor = inertial(PORT15);
+optical leftRollerSensor = optical(PORT2);// NOT ON ROBOT
+optical rightRollerSensor = optical(PORT3);// NOT ON ROBOT
 distance distanceSensor = distance(PORT2);
+rotation cataSensor = rotation(PORT9); // 9
 
-digital_out angleChanger = digital_out(Expander.F);
-digital_out compressionBar = digital_out(Brain.ThreeWirePort.B);
-digital_out intakeLift = digital_out(Expander.H);
-digital_out expansion = digital_out(Brain.ThreeWirePort.A);
+digital_out intakeLift = digital_out(Expander.A); // NOT ON ROBOT
+digital_out expansionLow = digital_out(Brain.ThreeWirePort.A);
+digital_out expansionHigh = digital_out(Expander.B); // NOT ON ROBOT
+digital_out pistonBoost = digital_out(Brain.ThreeWirePort.C);
+digital_out bandBoost = digital_out(Brain.ThreeWirePort.B);
 
 bool RemoteControlCodeEnabled = true;
 
-// GLOBBAL FUNCTIONS
-bool discAtBottom(int threshold = 8);
-bool discAtTop(int threshold = 4);
-bool discAtFlywheel(int threshold = 4);
+// GLOBAL FUNCTIONS
+
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
