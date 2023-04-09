@@ -20,7 +20,7 @@ extern motor_group lDrive;
 
 extern triport Expander;
 
-// extern line bottomIntakeSensor;
+extern line bottomIntakeSensor;
 
 extern encoder leftEncoder;
 extern encoder backEncoder;
@@ -32,20 +32,21 @@ extern distance distanceSensor;
 extern rotation cataSensor;
 
 extern digital_out intakeLift;
-extern digital_out expansionLow;
-extern digital_out expansionHigh;
+extern digital_out expansionLeft;
+extern digital_out expansionRight;
 extern digital_out pistonBoost;
 extern digital_out bandBoost;
 
 
 
 // GLOBAL VARIABLES
-//extern double topIntakeSensorInit;
+extern double bottomIntakeSensorInit;
 
 extern double globalX;
 extern double globalY;
 extern double globalAngle;
 
+extern double resetAngle;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

@@ -17,34 +17,33 @@ motor RBDrive = motor(PORT18, ratio6_1, false);
 motor_group rDrive = motor_group(RFDrive, RMDrive, RBDrive);
 
 motor LFDrive = motor (PORT11, ratio6_1, true); 
-motor LMDrive = motor(PORT13, ratio6_1, true);
+motor LMDrive = motor(PORT14, ratio6_1, true);
 motor LBDrive = motor(PORT19, ratio6_1, true);
 motor_group lDrive = motor_group(LFDrive, LMDrive, LBDrive);
 
 
-triport Expander = triport(PORT1);// NOT ON ROBOT
+triport Expander = triport(PORT1);
 
-//line bottomIntakeSensor = line(Expander.B);
+line bottomIntakeSensor = line(Expander.D);
 
-encoder leftEncoder = encoder(Brain.ThreeWirePort.E);
+encoder leftEncoder = encoder(Expander.A);
 encoder backEncoder = encoder(Brain.ThreeWirePort.G);
 
 inertial inertialSensor = inertial(PORT15);
 optical leftRollerSensor = optical(PORT2);// NOT ON ROBOT
 optical rightRollerSensor = optical(PORT3);// NOT ON ROBOT
 distance distanceSensor = distance(PORT2);
-rotation cataSensor = rotation(PORT9); // 9
+rotation cataSensor = rotation(PORT9);
 
-digital_out intakeLift = digital_out(Expander.A); // NOT ON ROBOT
-digital_out expansionLow = digital_out(Brain.ThreeWirePort.A);
-digital_out expansionHigh = digital_out(Expander.B); // NOT ON ROBOT
+digital_out intakeLift = digital_out(Brain.ThreeWirePort.D);
+digital_out expansionLeft = digital_out(Brain.ThreeWirePort.A);
+digital_out expansionRight = digital_out(Expander.C);
 digital_out pistonBoost = digital_out(Brain.ThreeWirePort.C);
 digital_out bandBoost = digital_out(Brain.ThreeWirePort.B);
 
 bool RemoteControlCodeEnabled = true;
 
 // GLOBAL FUNCTIONS
-
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

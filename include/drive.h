@@ -17,13 +17,11 @@ void displayInfo() {
 }
 
 
-double straightExpFunction(double d) {
-  double a = 4;
+double straightExpFunction(double d, double a = 4) {
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
-double turnExpFunction(double d) {
-  double a = 8;
+double turnExpFunction(double d, double a = 8) {
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
 }
 
@@ -31,7 +29,7 @@ bool cataFired(double resetAngle) {
   return (cataSensor.angle(deg) < resetAngle || cataSensor.angle(deg) > 350);
 }
 
-/*
+/*==
 bool discAtBottom(int threshold = 8) {
   return bottomIntakeSensor.reflectivity() - threshold > bottomIntakeSensorInit;
 }*/
@@ -60,7 +58,6 @@ void drive() {
   bool pistonActive = false;
 
 
-  double resetAngle = 79; 
 
   while (1) {
     displayInfo();
@@ -71,11 +68,22 @@ void drive() {
 
 
     double Axis3Adjusted = fabs(Controller.Axis3.position()) > 5 ? straightExpFunction(Controller.Axis3.position()) : 0;
-    double Axis1Adjusted = fabs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.93) : 0;
+    double turnAxis = 0;
+    printf("4V: %ld, 1V: %ld\n", Controller.Axis4.position(), Controller.Axis1.position());
+    if (abs(Controller.Axis4.position()) > 10) {
+      turnAxis = abs(Controller.Axis4.position()) > 5 ? turnExpFunction(Controller.Axis4.position() * 0.85) : 0;
+      //printf("A4T: %f\n", turnAxis);
+    } else {
+      turnAxis = abs(Controller.Axis1.position()) > 5 ? turnExpFunction(Controller.Axis1.position() * 0.93) : 0;
+      //printf("A1T: %f\n", turnAxis);
+
+    }
+
+    
 
 
-    double outputL = (Axis3Adjusted + (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
-    double outputR = (Axis3Adjusted - (Axis1Adjusted * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
+    double outputL = (Axis3Adjusted + (turnAxis * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
+    double outputR = (Axis3Adjusted - (turnAxis * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
     //printf("VerticalAxis = %ld, HorizontalAxis = %ld, outputL = %f, outputR = %f\n", Controller.Axis3.position(), Controller.Axis1.position(), outputL, outputR);
     lDrive.spin(forward, (outputL / 100.0 * 12), volt);
     rDrive.spin(forward, (outputR / 100.0 * 12), volt);
@@ -122,7 +130,7 @@ void drive() {
       resettingCata = false;
     }
 
-    if (!resettingCata && cataSensor.angle() >= resetAngle && Controller.ButtonL1.pressing()) {
+    if (!resettingCata && cataSensor.angle() >= resetAngle && (Controller.ButtonL1.pressing() || Controller.ButtonL2.pressing())) {
       cataMain.spin(forward, 100, pct);
       intake_roller_cata.spin(forward, 100, pct);
  
@@ -149,8 +157,8 @@ void drive() {
  
     if (Controller.ButtonY.pressing()) {
       if (exp.value() > 0.500) {
-        expansionLow.set(true);
-        expansionHigh.set(true);
+        expansionRight.set(true);
+        expansionLeft.set(true);
         expanded = true;
       }
       expanding = true;

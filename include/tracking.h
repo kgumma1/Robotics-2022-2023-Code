@@ -2,13 +2,13 @@
 
 using namespace vex;
 
-#define sideWheelCirc 2.73 * M_PI 
-#define backWheelCirc 2.78 * M_PI 
+#define sideWheelCirc 2.733794649  * M_PI 
+#define backWheelCirc 2.741971502 * M_PI 
 
-#define sideDist 1.75
-#define backDist 4.5
+#define sideDist -3.204994532
+#define backDist -6.344236563
+#define trackWidth 10.75
 #define errorPerRotation 2.5
-
 
 double globalX;
 double globalY;
@@ -34,11 +34,12 @@ void displayTracking() {
   Brain.Screen.drawLine(240, 240, 480, 0);
 
   Brain.Screen.drawCircle(240 + globalX / 144.0 * 240, 240 - (globalY / 144.0 * 240), 5, orange);
+  
 }
 
 double inertialAdjusted() {
   double curr = inertialSensor.heading();
-  return curr - (inertialSensor.rotation() - initHeading) / 360.0 * errorPerRotation;
+  return curr - (inertialSensor.rotation()) / 360.0 * errorPerRotation;
 }
 
 double getAngleDiff(double prev, double curr) {

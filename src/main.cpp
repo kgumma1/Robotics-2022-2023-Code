@@ -20,8 +20,9 @@ using namespace vex;
 competition Competition;
 
 // define your global instances of motors and other devices here
-//double topIntakeSensorInit;
+double bottomIntakeSensorInit;
 
+double resetAngle = 81.5; 
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -34,14 +35,14 @@ competition Competition;
 /*---------------------------------------------------------------------------*/
 void calibrateLineSensors() {
   wait(1, sec);
-  //topIntakeSensorInit = 0;
+  bottomIntakeSensorInit = 0;
   
   for (int i = 0; i < 10; i++) {
-    //topIntakeSensorInit += topIntakeSensor.reflectivity();
+    bottomIntakeSensorInit += bottomIntakeSensor.reflectivity();
     
     wait(20, msec);
   }
-  //topIntakeSensorInit /= 10.0;
+  bottomIntakeSensorInit /= 10.0;
   
 }
 
@@ -98,7 +99,7 @@ void pre_auton(void) {
   calibrateLineSensors();
   calibrateIntertial();
 
-  colorSelect = vex::task(colorSelectScreen);
+  //colorSelect = vex::task(colorSelectScreen);
 
 }
 
@@ -117,8 +118,9 @@ void autonomous(void) {
   vex::task::stop(colorSelect);
   Brain.Screen.setPenColor(white);
   
-
-}
+  rightSide(true);
+  //testing();
+} 
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
