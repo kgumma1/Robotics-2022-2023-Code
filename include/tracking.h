@@ -2,11 +2,13 @@
 
 using namespace vex;
 
-#define sideWheelCirc 2.733794649  * M_PI 
-#define backWheelCirc 2.741971502 * M_PI 
+#define sideWheelCirc 2.733794649 * M_PI 
+#define backWheelCirc 2.750197416 * M_PI 
 
-#define sideDist -3.204994532
-#define backDist -6.344236563
+#define sideDist -2.875
+//-3.190566171
+#define backDist -6.125
+//-6.369380821
 #define trackWidth 10.75
 #define errorPerRotation 2.5
 
@@ -59,6 +61,9 @@ double toDeg(double rad) {
   return rad * 180 / M_PI;
 }
 
+class inertial2 : inertial {
+};
+
 int startTracking() {
 
   double prevAngle = initHeading;
@@ -107,9 +112,9 @@ int startTracking() {
     sideWheelPrev = sideWheelCurr;
     backWheelPrev = backWheelCurr;
 
-  
 
-    wait(5, msec);
+
+    wait(10, msec);
 
   }
   return 1;

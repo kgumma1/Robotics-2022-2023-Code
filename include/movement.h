@@ -7,8 +7,8 @@ using namespace vex;
 
 void Turn(double ang, double maxSpeed, double precision = 0.5, double timeout = 10000) {
   double turnkP = 0.13;
-  double turnkI = 0.03;
-  double turnkD = 0.7; /*+ fabs(getAngleDiff(globalAngle, ang) / 900.0)*/;
+  double turnkI = 0.005;
+  double turnkD = 0.2; /*\\+ fabs(getAngleDiff(globalAngle, ang) / 900.0)*/;
 
   double angleError;
   double prevAngleError;
@@ -22,7 +22,7 @@ void Turn(double ang, double maxSpeed, double precision = 0.5, double timeout = 
   do {
 
       angleError = getAngleDiff(globalAngle, ang);
-
+      
       derivError = angleError - prevAngleError;
 
       if (fabs(turnkD * derivError) < 0.2) {
@@ -33,14 +33,14 @@ void Turn(double ang, double maxSpeed, double precision = 0.5, double timeout = 
       }
       
       output = angleError * turnkP + intError * turnkI + derivError * turnkD;
-      output = fabs(output) > maxSpeed ? maxSpeed : output;
+      output = fabs(output) > maxSpeed ? maxSpeed * (output > 0 ? 1 : -1) : output;
 
       prevAngleError = angleError;
 
       lDrive.spin(fwd, output, volt);
       rDrive.spin(fwd, -output, volt);
 
-      printf("output = %f, error = %f, derivError = %f\n", output, angleError, derivError);
+      printf("target = %f, output = %f, error = %f, derivError = %f\n", ang, output, angleError, derivError);
 
       wait(10, msec);
   } while(fabs(angleError) > precision && turnTime.time() < timeout);
@@ -69,8 +69,8 @@ bool exitMove = false;
 
 void move(va_list statesInputList, directionType d, int count, double initAdherence, double endOfMovePrecision, double timeout) {
   exitMove = false;
-  printf("inputs = d: %d, c: %d, adh: %f, emp: %f, tm: %f\n", d == forward ? 1 : 0, count, initAdherence, endOfMovePrecision, timeout);
-  printf("not %d\n", 1);
+  //printf("inputs = d: %d, c: %d, adh: %f, emp: %f, tm: %f\n", d == forward ? 1 : 0, count, initAdherence, endOfMovePrecision, timeout);
+
   State states[count + 1];
   Bezier beziers[count];
     
@@ -92,7 +92,7 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
     beziers[i] = Bezier(states[i], states[i+1]);
     totalLength += beziers[i].lengthleft(0);
   }
-  printf("not %d\n", 2);
+
   double tOfClosestPoint;
   Point closestPoint;
 
@@ -120,11 +120,11 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
 
   vex::timer exitTimer = vex::timer();
 
-  printf("not %d\n", 3);
+
   for (int i = 0; i < count; i++) {
     totalLength -= beziers[i].lengthleft(0);
     maxSpeed = states[i+1].maxSpeed;
-    printf("b#: %d, x: %f, y; %f, adh: %f, speed: %f\n", i + 1, states[i].location.x, states[i].location.y, states[i].angle, states[i].maxSpeed);
+    //printf("b#: %d, x: %f, y; %f, adh: %f, speed: %f\n", i + 1, states[i].location.x, states[i].location.y, states[i].angle, states[i].maxSpeed);
     
     do {
       robotPose.location.x = globalX;
@@ -162,11 +162,11 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
       rDrive.spin(fwd, powerRight / 100.0 * 12, volt);
 
 
-      printf("totalError: %f, powerLeft: %f, powerRight: %f, lengthLeft: %f\n", totalError, powerLeft, powerRight, beziers[i].lengthleft(tOfClosestPoint));
+      //printf("totalError: %f, powerLeft: %f, powerRight: %f, lengthLeft: %f\n", totalError, powerLeft, powerRight, beziers[i].lengthleft(tOfClosestPoint));
       wait(10, msec);
     } while(beziers[i].lengthleft(tOfClosestPoint) > 2 && exitTimer.time() < timeout && !exitMove);
   }
-    printf("not %d\n", 4);
+
 
   if (exitTimer.time() < timeout && !exitMove) {
     Turn(states[count].angle, states[count].maxSpeed, endOfMovePrecision);

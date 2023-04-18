@@ -64,9 +64,12 @@ bool cataFiring = false;
 bool intakeEnabled = true;
 bool pistonBoostEnabled = false;
 
-void fireCata(bool pistonBoostOn = false) {
+void fireCata(bool pistonBoostOn = false, bool w = true) {
   cataFiring = true;
   pistonBoostEnabled = pistonBoostOn;
+  if (w) {
+    wait(50, msec);
+  }
 }
 
 void intakeControl(double intakeControlOn) {
@@ -80,15 +83,16 @@ bool discAtBottom(double threshold = 8) {
 int countDiscs() {
   while (true) {
 
-    while (!discAtBottom()) {
+    while (!discAtBottom(8)) {
       wait(10, msec);
       if (cataFiring) {discCount = 0;}
     }
 
-    while (discAtBottom()) {
+    while (discAtBottom(2)) {
       wait(10, msec);
       if (cataFiring) {discCount = 0;}
     }
+    wait(200, msec);
     discCount++;
   }
 }
@@ -111,6 +115,7 @@ int manageCata_Intake() {
       cataReset = false;
       cataFiring = false;
     }
+
     if (cataFiring && cataAngle > 2 + resetAngle && pistonBoostEnabled) {
       pistonBoost.set(true);
     } else if (!cataReset && !cataFiring && cataAngle < 10) {
@@ -118,9 +123,11 @@ int manageCata_Intake() {
     }
     if (cataReset && discCount < 3 && intakeEnabled) {
       intake_roller_cata.spin(reverse, 100, pct);
-    } else if (intakeEnabled) {
+    } else if (intakeEnabled && !cataFiring && cataReset) {
       intake_roller_cata.stop(coast);
     }
+    //printf("discs: %d, cataReset: %d, intakeV: %f, cataV: %f\n", discCount, cataReset ? 1 : 0, intake_roller_cata.voltage(), cataMain.voltage());
+    wait(10, msec);
   }
 }
 
