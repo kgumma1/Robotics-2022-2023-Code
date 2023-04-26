@@ -30,8 +30,8 @@ encoder leftEncoder = encoder(Expander.A);
 encoder backEncoder = encoder(Brain.ThreeWirePort.G);
 
 inertial inertialSensor = inertial(PORT15);
-optical leftRollerSensor = optical(PORT2);// NOT ON ROBOT
-optical rightRollerSensor = optical(PORT3);// NOT ON ROBOT
+optical leftRollerSensor = optical(PORT8);// NOT ON ROBOT
+optical rightRollerSensor = optical(PORT13);// NOT ON ROBOT
 distance distanceSensor = distance(PORT2);
 rotation cataSensor = rotation(PORT9);
 

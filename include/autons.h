@@ -14,6 +14,18 @@ vex::task runWithDelay(int (*callback)(), double timeMsec) {
   return runFunction;
 }
 
+vex::timer runTime = vex::timer();
+int matchTime = 15;
+int timeRun() {
+  runTime.reset();
+  while (runTime.value() < matchTime) {
+    wait(100, msec);
+  }
+
+  Controller.rumble("----");
+  return 1;
+}
+
 int pauseAndTrack() {
   while(true) {
     displayTracking();
@@ -29,25 +41,51 @@ void autoInit(double xInit, double yInit, double headingInit, int discInit) {
   inertialSensor.setHeading(headingInit, deg);
   inertialSensor.resetRotation();
   discCount = discInit;
+  leftRollerSensor.setLightPower(100);
+  rightRollerSensor.setLightPower(100);
   vex::task track = vex::task(startTracking);
   vex::task startDiscCounting = vex::task(countDiscs);
   vex::task startCata_Intake = vex::task(manageCata_Intake);
+  vex::task startTimer = vex::task(timeRun);
+}
+double target;
+int printafd() {
+  while(true) {
+    printf("t: %f, a: %f\n", target, globalAngle);
+    wait(10, msec);
+  }
 }
 
 void testing() {
    autoInit(0, 0, 0, 0);
-
+   
+  while (true) {
+    if (discCount > 2) {
+      wait(1000, msec);
+      fireCata(true);
+    }
+    wait(5000, msec);
+  }
   //move(forward, 1, 5, State(20, 50, 45, 10));
-
+  vex::task a = vex::task(printafd);
+  target = 45;
   Turn(45, 100);
   wait(2000, msec);
+    target = 135;
+
   Turn(135, 100);
   wait(2000, msec);
+    target = 0;
+
   Turn(0, 100);
   wait(2000, msec);
+    target = 3;
+
   Turn(3, 100);
   wait(2000, msec);
   Turn(180, 100);
+    target = 180;
+
 
 
   pauseAndTrack();
@@ -89,22 +127,29 @@ void rightSide(bool redAlliance) {
   autoInit(5 T + 8.75, 4 T - 8.75, 135, 0);
 
 
+
+
   vex::timer timeout = vex::timer();
 
   intakeUp();
-  move(reverse, 1, 1, 10, State(5 T - 6, 4 T + 6, 135, 1, 100));
 
+  moveParallel(reverse, 1, 1, 10, State(5 T - 6.5, 4 T + 6.5, 135, 1, 100));
+  while (Point(globalX, globalY).distTo(Point(5 T - 6.5, 4 T + 6.5)) > 2.5) {
+    wait(10, msec);
+  }
   intakeDown();
 
   timeout.reset();
-  while (discCount < 3 /*&& timeout.time(msec) < 3000*/) {
+  while (discCount < 3 && timeout.time(msec) < 2500) {
     wait(10, msec);
   }
 
-  Turn(283, 100);
+  exitMove = true;
+  wait(50, msec);
 
+  Turn(276, 100, 2);
+  removeBands();
   fireCata(true);
-  wait(300, msec);
   /*
   intakeUp();
   wait(500, msec);
@@ -119,99 +164,142 @@ void rightSide(bool redAlliance) {
   fireCata(true);
   wait(500, msec);
   */
-  intakeControl(false);
-  intake();
+
   
 
-  moveParallel(reverse, 2, 0, State(5 T + 14, 5 T - 16, 275, 3, 50), State(6 T + 10, 5 T - 16, 270, 20, 50));
+  moveParallel(reverse, 2, 0, 10, State(5 T + 14, 5 T - 11, 275, 3, 100), State(7 T + 10, 5 T - 11, 270, 20, 100));
   //pauseAndTrack();
-  spinRoller(true, redAlliance);
-  intakeControl(true);
+  spinRoller(false, redAlliance);
+
   exitMove = true;
   wait(50, msec);
-  move(forward, 1, 0, State(5 T + 14, 5 T - 14, 45, 0));
+
+  move(forward, 1, 0, 10, State(5 T + 8, 5 T - 14, 40, 0));
 
 
-  removeBands();
 
-  move(reverse, 3, 0, 30, State(4 T + 12, 3 T + 12, 45, 5, 50), State(3 T + 20, 2 T + 20, 45, 4, 50), State(3 T + 6, 2 T + 18, 315, 0, 50));
 
-  while (discCount < 3 /*&& timeout.time(msec) < 3000*/) {
-    wait(10, msec);
-  }
+  move(reverse, 3, 0, 1, State(4 T + 12, 3 T + 12, 45, 5, 60), State(3 T + 16, 2 T + 16, 45, 4, 60), State(3 T + 15, 2 T + 16, 312, 0, 60));
+
   fireCata(true);
-  wait(300, msec);
 
-  move(reverse, 2, 0, State(4 T, 2 T + 8, 280, 0, 40), State(5 T - 5, 2 T + 6, 270, 10, 40));
-  move(forward, 1, 10, State(3 T + 8, 2 T + 16, 315, 0, 70));
+  move(reverse, 2, 0, 50, 2800, State(4 T - 2, 2 T + 12, 270, 0, 30), State(6 T + 10, 2 T + 8, 280, 10, 40));
+ 
+  move(forward, 1, 0, 1, State(3 T + 10, 2 T + 14, 310, 0, 100));
 
 
-  while (discCount < 3 /*&& timeout.time(msec) < 3000*/) {
-    wait(10, msec);
-  }
+
   fireCata(true);
-  wait(300, msec);
-  
-  move(reverse, 2, 0, State(4 T - 10, 2 T - 3, 350, 1, 40), State(4 T - 6, 1 T + 5, 0, 7, 40));
-  move(forward, 1, 10, State(3 T + 8, 2 T + 16, 315, 0));
-  while (discCount < 3 /*&& timeout.time(msec) < 3000*/) {
-    wait(10, msec);
-  }
-  fireCata(true);
+  /*
+  move(reverse, 2, 0, 50, 2000, State(4 T - 10, 2 T - 3, 0, 1, 30), State(4 T - 5, 1 T - 10, 350, 7, 55));
+  move(forward, 1, 0, 3, State(3 T + 8, 2 T + 13, 314, 0, 100));
+
+  fireCata(true);*/
+  pauseAndTrack();
 }
 
 
 void leftSide(bool redAlliance) {
-  autoInit(1 T + 18, 15, 180, 0);
+  autoInit(2 T - 5, 1 T - (TILE_EDGE + 8), 159.7, 0);
   vex::timer timeout = vex::timer();
-  
   intakeUp();
+  move(reverse, 1, 1, 1, State(39, 27.792, 159.7, 1));
+  intakeDown();
+  timeout.reset();
+  while (discCount < 3 && timeout.time() < 3000) {
+    wait(10, msec);
+  }
+  Turn(348, 100);
+  fireCata(true);
+  wait(700, msec);
+  move(reverse, 1, 0, 2, State(1 T + 6, 1 T + 3, 110, 3, 100));
+
+  //lDrive.spin(forward, 10, pct);
+  /*lDrive.spin(reverse, 10, pct);
+  rDrive.spinFor(forward, 3, rev, 50, velocityUnits::pct);
+  lDrive.stop(hold);*/
+  move(forward, 1, 1, 5, State(1 T + 9, 22, 0, 1));
   
-  move(reverse, 1, 0, State(1 T + 18, 1 T, 175, 0));
+  move(reverse, 1, 0, 10, 2000, State(1 T + 11, 12, 0, 3, 100));
+  wait(500, msec);
+  moveParallel(reverse, 1, 3, State(1 T + 11, -2 T, 0, 3, 70));
+  spinRoller(true, redAlliance);
+  exitMove = true;
+  wait(50, msec);
+  move(forward, 1, 3, 2, State(1 T + 18, 1 T + 4, 342, 0));
+  discCount > 2 ? fireCata(true) : fireCata();
+  intakeUp();
+  Turn(250, 100, 5);
+  move(reverse, 1, 3, 2, State(2 T + 6, 1 T + 8, 245, 0));
   intakeDown();
 
   timeout.reset();
-  while (discCount < 3 && timeout.time(msec) < 2000) {
+  while (discCount < 3 && timeout.time() < 3000) {
     wait(10, msec);
   }
+  //move(forward, 1, 0, 2, State(2 T + 8, 1 T + 16, 334, 5));
+  Turn(334, 100, 1);
+  //removeBands();
+  discCount > 2 ? fireCata(true) : fireCata();
 
-  Turn(355, 100);
-  //fireCata(true);
-  intakeControl(false);
-  intake();
-  moveParallel(reverse, 3, 0, State(1 T + 12, 1 T, 45, 1), State(1 T - 4, 1 T - 18, 0, 5), State(1 T - 4, 0 T - 10, 0, 0));
+
+
   
-  spinRoller(true, redAlliance);
-  
-  intakeControl(true);
-  move(forward, 1, 0, State(1 T - 15, 1 T - 4,  0, 3));
-  //fireCata(true);
-  wait(500, msec);
-
-
-  move(reverse, 3, 0.001, State(2 T, 1 T + 12, 225, 4), State(2 T + 12, 2 T + 7, 225, 0.001), State(3 T - 2, 2 T - 2, 155, 5));
-  //fireCata(true);
-  wait(500, msec);
-  intakeUp();
-  Turn(45, 100);
-  move(reverse, 1, 0, State(3 T - 4, 2 T - 4, 45, 0));
-  intakeDown();
-  Turn(170, 100);
-
-  move(reverse, 1, 3, State(2 T + 20, 12, 160, 0));
-  move(forward, 1, 0, State(2 T + 6, 2 T - 6, 170, 10));
-  //fireCata(true);
-
-
-
-
-
+ 
 
 
 }
 
+
+
 void winPoint(bool redAlliance) {
   
+  autoInit(5 T + 6.850394, 4 T - 6.968504, 180, 2);
+
+  moveParallel(reverse, 2, 2, State(5 T + 20, 4 T + 4, 270, 5, 50), State(7 T, 4 T + 4, 270, 10, 50));
+  spinRoller(false, redAlliance);
+  exitMove = true;
+  wait(50, msec);
+
+  move(forward, 1, 7, 3, State(5 T + 4, 4 T + 2, 276, 0));
+
+  //removeBands();
+
+  fireCata(true);
+  
+  
+
+  Turn(20, 100, 5);
+  move(reverse, 2, 0, 50, State(4 T + 12, 3 T + 12, 45, 0, 35), State(3 T + 13, 2 T + 13, 50, 0, 50));
+  //move(forward, 1, 0, State(3 T + 9, 2 T + 15, 315, 0, 40));
+  Turn(310, 200, 2);
+
+  fireCata(true);
+  wait(200, msec);
+  move(reverse, 2, 0, 30, 2500, State(4 T - 2, 2 T + 10, 270, 1, 20), State(5 T + 5, 2 T + 5, 270, 5, 40));
+
+  move(forward, 1, 3, 1, State(3 T + 8, 2 T + 7, 313, 0, 100));
+
+  wait(300, msec);
+  fireCata(true);
+
+  /*
+  move(reverse, 2, 0, 30, State(4 T - 10, 2 T, 0, 0, 25), State(4 T - 7, 1 T, 0, 10, 40));
+  move(forward, 1, 3, State(3 T + 9, 2 T + 15, 315, 13, 100));
+  fireCata(true);*/
+
+  moveParallel(reverse, 3, 0, State(2 T + 18, 1 T + 16, 45, 5, 80), State(2 T - 4, 1 T, 90, 0, 40), State(2 T - 12, -2 T, 0, 10, 50));
+  spinRoller(true, redAlliance, 5000);
+  exitMove = true;
+  wait(50, msec);
+  move(forward, 1, 0, State(2 T + 2, 1 T, 350, 0));
+
+  fireCata();
+// removeBands();
+
+  
+  wait(10000, sec);
+
 }
 
 void skills() {

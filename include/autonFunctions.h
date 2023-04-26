@@ -65,10 +65,13 @@ bool intakeEnabled = true;
 bool pistonBoostEnabled = false;
 
 void fireCata(bool pistonBoostOn = false, bool w = true) {
-  cataFiring = true;
+  cataFiring = discCount > 0;
   pistonBoostEnabled = pistonBoostOn;
   if (w) {
-    wait(50, msec);
+    while(discCount > 0){
+      wait(10, msec);
+    }
+
   }
 }
 
@@ -85,14 +88,14 @@ int countDiscs() {
 
     while (!discAtBottom(8)) {
       wait(10, msec);
-      if (cataFiring) {discCount = 0;}
+      if (cataSensor.velocity(dps) < -30) {discCount = 0;}
     }
 
     while (discAtBottom(2)) {
       wait(10, msec);
-      if (cataFiring) {discCount = 0;}
+      if (cataSensor.velocity(dps) < -30) {discCount = 0;}
     }
-    wait(200, msec);
+
     discCount++;
   }
 }
@@ -106,8 +109,15 @@ int manageCata_Intake() {
       cataMain.spin(forward, 12, volt);
       intake_roller_cata.spin(forward, 12, volt); 
       cataReset = false;
+  
+    } else if (!cataFiring && cataSensor.velocity(dps) < 0.0001 && cataAngle < resetAngle2 && cataReset) {
+      cataReset = false;
+      resetAngle = resetAngle2;
+      cataMain.spin(forward, 12, volt);
+      intake_roller_cata.spin(forward, 12, volt);
     } else if (cataAngle > resetAngle && cataAngle < 350) {
-      cataMain.stop(coast);
+      cataMain.stop(brake);
+      intake_roller_cata.stop(brake);
       cataReset = true;
     } else if (cataAngle < resetAngle || cataAngle > 350) {
       cataMain.spin(forward, 12, volt);
@@ -115,19 +125,25 @@ int manageCata_Intake() {
       cataReset = false;
       cataFiring = false;
     }
+    if (cataSensor.velocity(dps) <= -30) {
+      resetAngle = resetAngle2 - resetAngleDiff;
+    }
 
-    if (cataFiring && cataAngle > 2 + resetAngle && pistonBoostEnabled) {
+
+    if (cataFiring && cataAngle > 1.5 + resetAngle2 && pistonBoostEnabled) {
       pistonBoost.set(true);
     } else if (!cataReset && !cataFiring && cataAngle < 10) {
       pistonBoost.set(false);
     }
-    if (cataReset && discCount < 3 && intakeEnabled) {
+    if (cataReset && discCount < 4 && intakeEnabled) {
       intake_roller_cata.spin(reverse, 100, pct);
     } else if (intakeEnabled && !cataFiring && cataReset) {
       intake_roller_cata.stop(coast);
     }
+    //printf("angle: %f, r: %f, cataReset: %d, cataFiring: %d\n", cataAngle, resetAngle, cataReset ? 1 : 0, cataFiring ? 1 : 0);
+    //printf("rangle %f\n", resetAngle);
     //printf("discs: %d, cataReset: %d, intakeV: %f, cataV: %f\n", discCount, cataReset ? 1 : 0, intake_roller_cata.voltage(), cataMain.voltage());
-    wait(10, msec);
+    wait(5, msec);
   }
 }
 

@@ -44,6 +44,8 @@ void drive() {
   bool r1prev = false;
   bool r2prev = false;
   bool yprev = false;
+  bool aprev = false;
+  bool upPrev = false;
   
   int intRollSpeed = 0;
 
@@ -56,6 +58,8 @@ void drive() {
   bool resettingCata = false;
   bool cataFiring = false;
   bool pistonActive = false;
+
+  bool cataDisabled = false;
   
   double cataAng;
 
@@ -87,8 +91,8 @@ void drive() {
 
     double outputL = (Axis3Adjusted + (turnAxis * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
     double outputR = (Axis3Adjusted - (turnAxis * fabs(sensInc * fabs(Axis3Adjusted) + initSens)));
-    printf("sraw = %ld, tfraw = %ld, tsraw = %ld\n", Controller.Axis3.position(), Controller.Axis1.position(), Controller.Axis4.position());
-    printf("VerticalAxis = %f, HorizontalAxis = %f, outputL = %f, outputR = %f\n", Axis3Adjusted, turnAxis, outputL, outputR);
+    //printf("sraw = %ld, tfraw = %ld, tsraw = %ld\n", Controller.Axis3.position(), Controller.Axis1.position(), Controller.Axis4.position());
+    //printf("VerticalAxis = %f, HorizontalAxis = %f, outputL = %f, outputR = %f\n", Axis3Adjusted, turnAxis, outputL, outputR);
     lDrive.spin(forward, (outputL / 100.0 * 12), volt);
     rDrive.spin(forward, (outputR / 100.0 * 12), volt);
 
@@ -117,26 +121,49 @@ void drive() {
       pistonActive = false;
     }
 
+    if (Controller.ButtonUp.pressing() && !upPrev) {
+      cataDisabled = !cataDisabled;
 
-    if (cataFired(resetAngle, cataAng) && !resettingCata /*&& fabs(cataSensor.velocity(dps)) < 2*/ && !expanding && !expanded) {
+    }
+          printf("c: %d\n", cataDisabled);
+    if (cataDisabled) {
+      resettingCata = false;
+      cataFiring = false;
+
+    }
+
+
+    if (cataFired(resetAngle, cataAng) && !resettingCata /*&& fabs(cataSensor.velocity(dps)) < 2*/ && !expanding && !expanded && !cataDisabled) {
 
 
       resettingCata = true;
       cataFiring = false;
+      resetAngle = resetAngle2 - resetAngleDiff;
+
+      //printf("CHANGED BACK\n");
       intake_roller_cata.spin(forward, 100, pct);
       cataMain.spin(forward, 100, pct);
     }
-    if (!cataFiring) {
-      pistonBoost.set(false);
+    if (!cataFiring && !resettingCata && !expanding && !expanded && Controller.ButtonR1.pressing() && !r1prev && !cataDisabled) {
+      intake_roller_cata.spinFor(forward, 0.05, rev);
     }
 
-    if (resettingCata && cataAng > resetAngle && cataAng < 350) {
+   
+    if (!cataFiring && cataSensor.velocity(dps) <= 0 && cataAng < resetAngle2 && !resettingCata && !cataDisabled) {
+        resettingCata = true;
+        resetAngle = resetAngle2;
+              //printf("CHANGED, %f\n", cataSensor.velocity(dps));
+                    intake_roller_cata.spin(forward, 100, pct);
+      cataMain.spin(forward, 100, pct);
+
+    } else if (resettingCata && cataAng > resetAngle && cataAng < 350 && !cataDisabled) {
+
       cataMain.stop(brake);
       intake_roller_cata.stop(brake);
       resettingCata = false;
     }
-
-    if (!resettingCata && cataAng >= resetAngle && (Controller.ButtonL1.pressing() || Controller.ButtonL2.pressing())) {
+        //printf("resetAngle = %f\n", resetAngle);
+    if (!resettingCata && cataAng >= resetAngle && (Controller.ButtonL1.pressing() || Controller.ButtonL2.pressing()) && !cataDisabled) {
       cataMain.spin(forward, 100, pct);
       intake_roller_cata.spin(forward, 100, pct);
  
@@ -144,39 +171,41 @@ void drive() {
       cataFiring = true;
     }
 
-    if (expanding && cataAng >= resetAngle) {
+    if (expanding && cataAng >= resetAngle && !cataDisabled) {
       cataMain.spin(forward, 100, pct);
       intake_roller_cata.spin(forward, 100, pct);
  
 
       cataFiring = true;
-    } else if (expanding) {
+    } else if (expanding && !cataDisabled) {
       cataFiring = false;
       cataMain.stop(coast);
       intake_roller_cata.stop(coast);
     }
 
-    if (cataSensor.velocity(dps) < -1 && !resettingCata) {
+    if (cataSensor.velocity(dps) < -1 && !resettingCata && !cataDisabled) {
   
       //cataMain.stop(brake); // TEST
       //intake_roller_cata.stop(brake); // TEST
 
     }
-    if(cataSensor.velocity(dps) < 0.5 && !resettingCata && fabs(cataMain.voltage()) > 0.5 && !cataFiring) {
+    if(cataSensor.velocity(dps) < 0.5 && !resettingCata && fabs(cataMain.voltage()) > 0.5 && !cataFiring && !cataDisabled) {
       cataMain.stop(coast);
       intake_roller_cata.stop(coast);
     }
 
-    if (cataAng > resetAngle + 2 && cataFiring && pistonActive) {
+    if (cataAng > resetAngle2 + 1.2 && cataFiring && pistonActive && !cataDisabled && !cataDisabled) {
       pistonBoost.set(true);
+    }
+
+    if (Controller.ButtonUp.pressing() && !upPrev) {
+
     }
 
     //printf("cataA: %f, resetting: %d \n", cataAng, resettingCata ? 1 : 0);
     // LIFT //
-    if (Controller.ButtonA.pressing()) {
-      intakeLift.set(true);
-    } else {
-      intakeLift.set(false);
+    if (Controller.ButtonA.pressing() && !aprev) {
+      intakeLift.set(!intakeLift.value());
     }
 
 
@@ -200,12 +229,19 @@ void drive() {
       expanding = false;
     }
 
+    // BAND BOOST REMOVE (safety)
+
+    if (Controller.ButtonB.pressing()) {
+      bandBoost.set(true);
+    }
+
 
 
     r1prev = Controller.ButtonR1.pressing();
     r2prev = Controller.ButtonR2.pressing();
-    yprev = Controller.ButtonY.pressing();
-
-    wait(10, msec);
+    yprev = Controller.ButtonY.pressing(); 
+    aprev = Controller.ButtonA.pressing();
+    upPrev = Controller.ButtonUp.pressing();
+    wait(5, msec);
   }
 }

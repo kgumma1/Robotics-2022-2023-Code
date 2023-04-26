@@ -5,9 +5,9 @@ using namespace vex;
 #define sideWheelCirc 2.733794649 * M_PI 
 #define backWheelCirc 2.750197416 * M_PI 
 
-#define sideDist -2.875
+#define sideDist -3.01
 //-3.190566171
-#define backDist -6.125
+#define backDist -6.18
 //-6.369380821
 #define trackWidth 10.75
 #define errorPerRotation 2.5
@@ -115,7 +115,8 @@ int startTracking() {
 
 
     wait(10, msec);
-
+    
   }
+
   return 1;
 }

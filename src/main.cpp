@@ -22,7 +22,10 @@ competition Competition;
 // define your global instances of motors and other devices here
 double bottomIntakeSensorInit;
 
-double resetAngle = 81; 
+double resetAngleDiff = 2.0;
+double resetAngle = 81.5; 
+double resetAngle2 = resetAngle + resetAngleDiff;
+
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -99,7 +102,7 @@ void pre_auton(void) {
   calibrateLineSensors();
   calibrateIntertial();
 
-  //colorSelect = vex::task(colorSelectScreen);
+ colorSelect = vex::task(colorSelectScreen);
 
 }
 
@@ -118,7 +121,8 @@ void autonomous(void) {
   vex::task::stop(colorSelect);
   Brain.Screen.setPenColor(white);
   //winPoint(redAlliance);
-  rightSide(true);
+  leftSide(redAlliance);
+  //rightSide(redAlliance);
   //testing();
 } 
 
@@ -146,6 +150,7 @@ void usercontrol(void) {
     wait(5, msec);
   }
   //twoRoller();
+  //rightSide(redAlliance);
   //winPoint();
   //drive();
   //winPoint();

@@ -6,9 +6,9 @@ using namespace vex;
 
 
 void Turn(double ang, double maxSpeed, double precision = 0.5, double timeout = 10000) {
-  double turnkP = 0.13;
-  double turnkI = 0.005;
-  double turnkD = 0.2; /*\\+ fabs(getAngleDiff(globalAngle, ang) / 900.0)*/;
+  double turnkP = 0.15;
+  double turnkI = 0.01;
+  double turnkD = -3 * pow(10, -5) * pow(fabs(getAngleDiff(ang, globalAngle)), 2) + 0.0113 * fabs(getAngleDiff(ang, globalAngle)) + 0.0303;
 
   double angleError;
   double prevAngleError;
@@ -39,8 +39,8 @@ void Turn(double ang, double maxSpeed, double precision = 0.5, double timeout = 
 
       lDrive.spin(fwd, output, volt);
       rDrive.spin(fwd, -output, volt);
-
-      printf("target = %f, output = %f, error = %f, derivError = %f\n", ang, output, angleError, derivError);
+      //printf("TARGET: %f\n", ang);
+      //printf("target = %f, output = %f, error = %f, derivError = %f\n", ang, output, angleError, derivError);
 
       wait(10, msec);
   } while(fabs(angleError) > precision && turnTime.time() < timeout);
@@ -112,7 +112,7 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
   double kAngle = dir == 1 ? 0.35 : 0.35;
   double kCross = dir == 1 ? 3 : 3;
 
-  double kP = 3.7;
+  double kP = 2.7;
   double kI = 0;
   double kD = 0;
 
@@ -120,7 +120,9 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
 
   vex::timer exitTimer = vex::timer();
 
-
+  if (totalLength < 10) {
+    kP = 3.2;
+  }
   for (int i = 0; i < count; i++) {
     totalLength -= beziers[i].lengthleft(0);
     maxSpeed = states[i+1].maxSpeed;
@@ -165,6 +167,7 @@ void move(va_list statesInputList, directionType d, int count, double initAdhere
       //printf("totalError: %f, powerLeft: %f, powerRight: %f, lengthLeft: %f\n", totalError, powerLeft, powerRight, beziers[i].lengthleft(tOfClosestPoint));
       wait(10, msec);
     } while(beziers[i].lengthleft(tOfClosestPoint) > 2 && exitTimer.time() < timeout && !exitMove);
+
   }
 
 

@@ -46,7 +46,9 @@ extern double globalX;
 extern double globalY;
 extern double globalAngle;
 
+extern double resetAngleDiff;
 extern double resetAngle;
+extern double resetAngle2;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
