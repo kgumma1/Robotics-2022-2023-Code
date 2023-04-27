@@ -16,6 +16,26 @@ void displayInfo() {
   Brain.Screen.printAt(5, 180, "Cata:         %.0f", cataMain.temperature(vex::temperatureUnits::celsius));
 }
 
+bool discAtBottomDriver(double threshold = 8) {
+  return (bottomIntakeSensorInit + threshold < bottomIntakeSensor.reflectivity());
+}
+int discCountDriver = 0;
+
+int countDiscsDriver() {
+  while (true) {
+
+    while (!discAtBottomDriver(8)) {
+      wait(10, msec);
+    }
+
+    while (discAtBottomDriver(2)) {
+      wait(10, msec);
+    }
+
+    discCountDriver++;
+  }
+}
+
 
 double straightExpFunction(double d, double a = 4) {
   return (1 / pow(100, a-1)) * pow(fabs(d), a) * (d > 0 ? 1 : -1);
@@ -53,7 +73,7 @@ void drive() {
   vex::timer exp = vex::timer();
 
 
-  int discCount = 0;
+
   bool intaking = false;
   bool resettingCata = false;
   bool cataFiring = false;
@@ -63,7 +83,7 @@ void drive() {
   
   double cataAng;
 
-
+  vex::task startCount = vex::task(countDiscsDriver);
 
   while (1) {
     displayInfo();
@@ -125,7 +145,7 @@ void drive() {
       cataDisabled = !cataDisabled;
 
     }
-          printf("c: %d\n", cataDisabled);
+          //printf("c: %d\n", cataDisabled);
     if (cataDisabled) {
       resettingCata = false;
       cataFiring = false;
@@ -204,9 +224,17 @@ void drive() {
 
     //printf("cataA: %f, resetting: %d \n", cataAng, resettingCata ? 1 : 0);
     // LIFT //
+    if (discCountDriver == 3 ) {
+      intakeLift.set(true);
+    }
+    if (cataFiring) {
+      intakeLift.set(false);
+      discCountDriver = 0;
+    }
     if (Controller.ButtonA.pressing() && !aprev) {
       intakeLift.set(!intakeLift.value());
     }
+    printf("d: %d\n", discCountDriver);
 
 
     // EXPANSION //

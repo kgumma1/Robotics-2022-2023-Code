@@ -22,7 +22,7 @@ competition Competition;
 // define your global instances of motors and other devices here
 double bottomIntakeSensorInit;
 
-double resetAngleDiff = 2.0;
+double resetAngleDiff = 2.2;
 double resetAngle = 81.5; 
 double resetAngle2 = resetAngle + resetAngleDiff;
 
@@ -121,8 +121,8 @@ void autonomous(void) {
   vex::task::stop(colorSelect);
   Brain.Screen.setPenColor(white);
   //winPoint(redAlliance);
-  leftSide(redAlliance);
-  //rightSide(redAlliance);
+  //leftSide(redAlliance);
+  rightSide(redAlliance);
   //testing();
 } 
 

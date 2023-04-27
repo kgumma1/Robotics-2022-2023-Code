@@ -147,7 +147,7 @@ void rightSide(bool redAlliance) {
   exitMove = true;
   wait(50, msec);
 
-  Turn(276, 100, 2);
+  Turn(277, 100, 2);
   removeBands();
   fireCata(true);
   /*
@@ -179,11 +179,11 @@ void rightSide(bool redAlliance) {
 
 
 
-  move(reverse, 3, 0, 1, State(4 T + 12, 3 T + 12, 45, 5, 60), State(3 T + 16, 2 T + 16, 45, 4, 60), State(3 T + 15, 2 T + 16, 312, 0, 60));
+  move(reverse, 3, 0, 2, State(4 T + 12, 3 T + 12, 45, 5, 60), State(3 T + 16, 2 T + 16, 45, 4, 60), State(3 T + 15, 2 T + 16, 307, 0, 60));
 
   fireCata(true);
 
-  move(reverse, 2, 0, 50, 2800, State(4 T - 2, 2 T + 12, 270, 0, 30), State(6 T + 10, 2 T + 8, 280, 10, 40));
+  move(reverse, 2, 0, 50, 2800, State(4 T - 2, 2 T + 11, 270, 0, 30), State(6 T + 10, 2 T + 8, 280, 10, 40));
  
   move(forward, 1, 0, 1, State(3 T + 10, 2 T + 14, 310, 0, 100));
 
